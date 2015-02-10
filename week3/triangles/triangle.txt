@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB">
+<head>
+<title>Triangle Assignment Tests</title>
+<style type="text/css">
+   div    { margin: 0 0 20px 40px; }
+  .report { font-weight:bold; margin-top:0; margin-bottom:0; }
+  .output { margin-top:0; }
+  .test   { font-family:monospace; }
+  .pass   { color:green; }
+  .fail   { color:red; }
+  .total  { font-weight:bold; font-size:1.3em; }
+</style>
+</head>
+<body>
+
+<h1>Triangle Assignment Tests</h1>
+
+<p>These are just a few tests to get you started and to avoid mis-spellings.
+Marking will be done with many more tests.</p>
+
+<div>mark 0</div>
+<div>ass Triangle</div>
+<div>require Triangle.java</div>
+<div>mark 1</div>
+<div>javac Triangle.java</div>
+
+<div>out Right-angled
+</div>
+<div>java Triangle 3 4 5</div>
+
+<div>out Equilateral
+</div>
+<div>java Triangle 4 4 4</div>
+
+<div>out Isosceles
+</div>
+<div>java Triangle 3 5 5</div>
+
+<div>out Scalene
+</div>
+<div>java Triangle 4 5 6</div>
+
+<div>total mark</div>
+
+</body>
+</html>

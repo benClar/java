@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB">
+<head>
+<title>Triangle Assignment Tests</title>
+<style type="text/css">
+   div    { margin: 0 0 20px 40px; }
+  .report { font-weight:bold; margin-top:0; margin-bottom:0; }
+  .output { margin-top:0; }
+  .test   { font-family:monospace; }
+  .pass   { color:green; }
+  .fail   { color:red; }
+  .total  { font-weight:bold; font-size:1.3em; }
+</style>
+</head>
+<body>
+
+<h1>Triangle Assignment Tests</h1>
+
+<p>These are just a few tests to get you started and to avoid mis-spellings.
+Marking will be done with many more tests.</p>
+
+<pre><span class='test'>require Triangle.java</span> <span class='pass'>pass</span></pre>
+<pre><span class='test'>javac Triangle.java</span> <span class='pass'>pass</span></pre>
+
+<pre><span class='test'>Triangle 3 4 5</span> <span class='fail'>fail</span>
+<span class='output'>----- output --------------------
+----- expected output -----------
+Right-angled
+---------------------------------
+<span></pre>
+
+<pre><span class='test'>Triangle 4 4 4</span> <span class='fail'>fail</span>
+<span class='output'>----- output --------------------
+----- expected output -----------
+Equilateral
+---------------------------------
+<span></pre>
+
+<pre><span class='test'>Triangle 3 5 5</span> <span class='fail'>fail</span>
+<span class='output'>----- output --------------------
+----- expected output -----------
+Isosceles
+---------------------------------
+<span></pre>
+
+<pre><span class='test'>Triangle 4 5 6</span> <span class='fail'>fail</span>
+<span class='output'>----- output --------------------
+----- expected output -----------
+Scalene
+---------------------------------
+<span></pre>
+
+<p class='total'>Total mark: 1 out of 5</p>
+
+</body>
+</html>
