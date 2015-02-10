@@ -18,15 +18,31 @@ public class TestingSuite	{
 		previous = prev;
 	}
 
-	public void newTest()	{
-		testsRan++;
+	public int getTestsRan()	{
+		return testsRan;
+	}
+
+	public int getTestsPassed()	{
+		return testsPassed;
+	}
+
+	public int getTestsFailed()	{
+		return testsFailed;
+	}
+
+	public void testFailed()	{
+		testsFailed++;
 	}
 
 	public void testPassed()	{
 		testsPassed++;
 	}
 
-	public void testFailed()	{
-		testsFailed++;
+	public void newTest()	{
+		testsRan++;
+	}
+
+	public void suiteStatus()	{
+        System.out.printf("\n--> %d checks, %d checks Suceeded, %d failed (%.2f)\n\n",getTestsRan(),getTestsPassed(),getTestsFailed(),(double) getTestsPassed()/ (double) getTestsRan() * 100);
 	}
 }
