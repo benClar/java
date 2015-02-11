@@ -2,26 +2,27 @@ public class Triangle extends WhiteBoxTesting	{
 
 	public static void main( String[] args )	{
 		Triangle main = new Triangle();
-		if(main.checkMode(args))	{
-			main.testTriangle(args);
+		if(WhiteBoxTesting.checkMode(args))	{
+			main.testTriangle(args).endTesting();
 		} else {
 			main.run(args);
 		}
 	}
 
 	public void run(String[] args)	{
-		argCountTest(3,args);
-		TriangleShape t = new TriangleShape(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+		WhiteBoxTesting.argCountTest(3,args);
+		TriangleShape t = new TriangleShape(SafeGeneric.stringToInt(args[0]), SafeGeneric.stringToInt(args[1]), SafeGeneric.stringToInt(args[2]));
+		System.out.println(t.getTriangleType().getType());
 	}
 
-	public void testTriangle(String[] args)	{
+	public Testing testTriangle(String[] args)	{
 		Testing t = new Testing();
-		startTesting();
-		t.enterSuite("Triangle: main program");
+		WhiteBoxTesting.startTesting();
+		t.enterSuite("Triangle Unit Tests");
 		t.compare(1,"==",argCountTest(1,args),"Valid argument count");
 		t.compare(0,"==",argCountTest(3,args),"Invalid argument count");
 		t.exitSuite();
-		t.endTesting();
+		return t;
 	}
 
 }

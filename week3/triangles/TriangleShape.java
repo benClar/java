@@ -4,7 +4,7 @@ public class TriangleShape extends WhiteBoxTesting	{
 	private int sideTwo;
 	private int sideThree;
 	private int nSides;
-	TriangleType tType;
+	private TriangleType tType;
 
 	private final int SIDE_UPPER_LIMIT = (int) Math.pow(2,31) - 1;
 	private final int SIDE_LOWER_LIMIT = 0;
@@ -15,11 +15,68 @@ public class TriangleShape extends WhiteBoxTesting	{
 		sideTwo = boundCheck(sTwo);
 		sideThree = boundCheck(sThree);
 		nSides = NUM_OF_SIDES;
-		stopTesting();
+		tType = calculateTriangleType();
+		WhiteBoxTesting.stopTesting();
 	}
 
 	public TriangleShape()	{
 		/*Empty Constructor*/
+	}
+
+	private TriangleType calculateTriangleType()	{
+		if(checkEquilateral())	{
+			return TriangleType.EQUILATERAL;
+		} else if(checkIsosceles())	{
+			return TriangleType.ISOSCELES;
+		} else if(checkRightAngled())	{
+			return TriangleType.RIGHT_ANGLE;
+		}
+		return TriangleType.SCALENE;
+	}
+
+	public boolean compare(TriangleShape t)	{
+		if (t.getTriangleType() == this.getTriangleType())	{
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean compare(TriangleType t)	{
+		if (t == this.getTriangleType())	{
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private boolean checkEquilateral()	{
+		if(sideOne == sideTwo && sideTwo == sideThree)	{
+			return true;
+		}
+		return false;
+	}
+
+	private boolean checkIsosceles()	{
+		if(sideOne == sideTwo || sideTwo == sideThree || sideOne == sideThree)	{
+			return true;
+		}
+		return false;
+	}
+
+	public TriangleType getTriangleType()	{
+		return tType;
+	}
+
+	private boolean checkRightAngled()	{
+		if(Math.pow(sideOne,2) + Math.pow(sideTwo,2) == Math.pow(sideThree,2)) {
+			return true;
+		} else if(Math.pow(sideOne,2) + Math.pow(sideThree,2) == Math.pow(sideTwo,2))	{
+			return true;
+		} else if(Math.pow(sideThree,2) + Math.pow(sideTwo,2) == Math.pow(sideOne,2))	{
+			return true;
+		}
+		return false;
 	}
 
 	private int boundCheck(int n)	{
@@ -33,28 +90,22 @@ public class TriangleShape extends WhiteBoxTesting	{
 		return n;
 	}
 
-	/*private int catchException(Exception e)	{
-		if(testMode == false)	{
-			System.out.println(e);
-			System.exit(1);
-		}
-			return 0;
-	}*/
-
 	public static void main(String[] args)	{
 		TriangleShape triangle = new TriangleShape();
-		triangle.testTriangleShape(args,triangle);
+		if(WhiteBoxTesting.checkMode(args))	{
+			triangle.testTriangleShape(args,triangle).endTesting();;
+		}
 	}
 
-	public void testTriangleShape(String[] args, TriangleShape triangle)	{
+	public Testing testTriangleShape(String[] args, TriangleShape triangle)	{
 		Testing t = new Testing();
-		triangle.startTesting();
-		t.enterSuite("TriangleShape");
+		WhiteBoxTesting.startTesting();
+		t.enterSuite("TriangleShape Unit Tests");
 		t.compare(0,"==",triangle.catchException(new IllegalArgumentException()),"Exception catch returns 0 in test mode");
 		t.compare(0,"==",triangle.boundCheck((int) Math.pow(2,31)),"Invalid upper bounds of side length");
 		t.compare(0,"==",triangle.boundCheck(0),"Invalid lower bounds of side length");
 		t.compare(0,"!=",triangle.boundCheck((int) Math.pow(2,31)-1),"Valid upper bounds of side length");
 		t.exitSuite();
-		t.endTesting();
+		return t;
 	}
 }
