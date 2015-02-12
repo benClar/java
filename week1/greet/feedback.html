@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-GB" xml:lang="en-GB">
+<head>
+<title>Greet Assignment Tests</title>
+<style type="text/css">
+   div    { margin: 0 0 20px 40px; }
+  .report { font-weight:bold; margin-top:0; margin-bottom:0; }
+  .output { margin-top:0; }
+  .test   { font-family:monospace; }
+  .pass   { color:green; }
+  .fail   { color:red; }
+  .total  { font-weight:bold; font-size:1.3em; }
+</style>
+</head>
+<body>
+
+<h1>Greet Assignment Tests</h1>
+
+<p>The program must have the right name, and must compile.  The
+<code>require</code> test makes sure that the file name has the right case,
+even if you are working on a case insensitive system like Windows or
+(sometimes) MacOS, so that your program is platform dependent, and in
+particular will work when submitted and tested by us on Linux.</p>
+
+<pre><span class='test'>require Greet.java</span> <span class='pass'>pass</span></pre>
+<pre><span class='test'>javac Greet.java</span> <span class='pass'>pass</span></pre>
+
+<p>The program should say "Hello" if given no arguments.  There should be
+precisely one line of text with precisely 5 characters, plus precisely one
+terminating newline.  The spelling and case must be precisely right.</p>
+
+<pre><span class='test'>Greet</span> <span class='pass'>pass</span></pre>
+
+<p>The program should greet someone, if you give their name as an argument:</p>
+
+<pre><span class='test'>Greet Garfield</span> <span class='pass'>pass</span></pre>
+
+<p>The program should print different names for different arguments, and ignore
+arguments after the first:</p>
+
+<pre><span class='test'>Greet Wanda Fish</span> <span class='pass'>pass</span></pre>
+
+<p>The total mark is:</p>
+
+<p class='total'>Total mark: 5 out of 5</p>
+
+</body>
+</html>

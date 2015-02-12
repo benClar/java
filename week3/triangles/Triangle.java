@@ -19,8 +19,8 @@ public class Triangle  {
 		Testing t = new Testing();
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("Triangle Unit Tests");
-		t.compare(1,"==",argCountTest(1,args),"Valid argument count");
-		t.compare(0,"==",argCountTest(3,args),"Invalid argument count");
+		t.compare(1,"==",WhiteBoxTesting.argCountTest(1,args),"Valid argument count");
+		t.compare(0,"==",WhiteBoxTesting.argCountTest(3,args),"Invalid argument count");
 		t.exitSuite();
 		return t;
 	}
