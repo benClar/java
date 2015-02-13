@@ -85,26 +85,26 @@ public class TriangleShape extends WhiteBoxTesting	{
 				throw new IllegalArgumentException("Side length provided is out of bounds");
 			}
 		} catch (IllegalArgumentException e)	{
-			return catchException(e);
+			return WhiteBoxTesting.catchException(e);
 		}
 		return n;
 	}
 
 	public static void main(String[] args)	{
 		TriangleShape triangle = new TriangleShape();
-		if(WhiteBoxTesting.checkMode(args))	{
-			triangle.testTriangleShape(args,triangle).endTesting();;
-		}
+        if(checkMode(args).equals(OperatingMode.UNIT_TEST)) {
+			triangle.testTriangleShape(new Testing()).endTesting();;
+        }
 	}
 
-	public Testing testTriangleShape(String[] args, TriangleShape triangle)	{
-		Testing t = new Testing();
+	public Testing testTriangleShape(Testing t)	{
+		TriangleShape tri = new TriangleShape();
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("TriangleShape Unit Tests");
-		t.compare(0,"==",triangle.catchException(new IllegalArgumentException()),"Exception catch returns 0 in test mode");
-		t.compare(0,"==",triangle.boundCheck((int) Math.pow(2,31)),"Invalid upper bounds of side length");
-		t.compare(0,"==",triangle.boundCheck(0),"Invalid lower bounds of side length");
-		t.compare(0,"!=",triangle.boundCheck((int) Math.pow(2,31)-1),"Valid upper bounds of side length");
+		t.compare(0,"==",WhiteBoxTesting.catchException(new IllegalArgumentException()),"Exception catch returns 0 in test mode");
+		t.compare(0,"==",tri.boundCheck((int) Math.pow(2,31)),"Invalid upper bounds of side length");
+		t.compare(0,"==",tri.boundCheck(0),"Invalid lower bounds of side length");
+		t.compare(0,"!=",tri.boundCheck((int) Math.pow(2,31)-1),"Valid upper bounds of side length");
 		t.exitSuite();
 		return t;
 	}

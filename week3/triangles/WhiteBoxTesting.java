@@ -2,7 +2,9 @@ public class WhiteBoxTesting	{
 
 	protected static boolean testMode;
 
-	private final static String START_TESTING = "test";
+	public final static String UNIT_TEST = "uTest";
+	public final static String COMPONENT_TEST = "uTest";
+	public final static String NOP = "NOP";
 
 	public WhiteBoxTesting()	{
 
@@ -13,7 +15,7 @@ public class WhiteBoxTesting	{
 	 */
     protected static int catchException(Exception e) {
         if(testMode == false)   {
-            System.out.println("Fatal Error: " + e + '\n');
+            System.out.println("Fatal Error: " + e);
             System.exit(1);
         }
         return 0;
@@ -24,7 +26,7 @@ public class WhiteBoxTesting	{
 	 */
     protected static int catchException(Exception e,String errMsg) {
         if(testMode == false)   {
-            System.out.println("Fatal Error: " + errMsg + '\n');
+            System.out.println("Fatal Error: " + errMsg);
             System.exit(1);
         }
         return 0;
@@ -50,17 +52,21 @@ public class WhiteBoxTesting	{
 		return 1;
 	}
 
-	protected static boolean checkMode( String[] args )	{
+	protected static OperatingMode checkMode( String[] args )	{
 		try	{
-			if(args[0].equals(START_TESTING) && args.length == 1)	{
+			if(args[0].equals(OperatingMode.UNIT_TEST.mode()) && args.length == 1)	{
 				startTesting();
-				return true;
+				return OperatingMode.UNIT_TEST;
+			} else if(args[0].equals(OperatingMode.COMPONENT_TEST.mode()) && args.length == 1) {
+				startTesting();
+				return OperatingMode.COMPONENT_TEST;
 			} else {
 				stopTesting();
-				return false;
+				return OperatingMode.NOP;
 			}	
 		} catch(ArrayIndexOutOfBoundsException e)	{
-			return ((catchException(e, "Enter test or supply 3 integer values") == 1) ? true : false);
+			catchException(e, "Enter test or supply 3 integer values");
+			return OperatingMode.ERROR_MODE;
 		}
 	}
 }
