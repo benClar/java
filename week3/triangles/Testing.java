@@ -1,12 +1,16 @@
+/*
+ *Controls testing functionality and stores data on all testing suites
+ */
+
 public class Testing	{
 
-	private int suiteCount;
-	private int totalTestsRan;
-	private int totalTestsPassed;
-	private int totalTestsFailed;
+	private int suiteCount; 	//! Number of suites that have been entered
+	private int totalTestsRan;	//! Total number of tests that have been ran accross all suites
+	private int totalTestsPassed; //! Total number of tests that have passed accross all suites;
+	private int totalTestsFailed; //! Total number of tests that have failed accross all suites;
 
-	private final String EQUALS = "==";
-	private final String NOT_EQUALS = "!=";
+	private final String EQUALS = "==";	//!Equality operator
+	private final String NOT_EQUALS = "!="; //!Inequality Operator
 
 	TestingSuite currentSuite;
 
@@ -18,6 +22,9 @@ public class Testing	{
 		currentSuite = null;
 	}
 
+	/*
+	 *Enters new testing suite
+	 */
 	public void enterSuite(String sName)	{
 		//!Do test for null
 		suiteCount++;
@@ -27,10 +34,16 @@ public class Testing	{
 		currentSuite = newSuite;
 	}
 
+	/*
+	 *Exits current testing suite
+	 */
 	public void exitSuite()	{
 		currentSuite.suiteStatus();
 	}
 
+	/*
+	 *Comparisons of objects passed into suite.  Based on Lecture slides.
+	 */
 	public void compare(Object x, String Operator, Object y, String testMsg) {
 		newTest();
 		boolean testResult = false;
@@ -47,6 +60,9 @@ public class Testing	{
 		}
 	}
 
+	/*
+	 *Returns true if objects are not equal
+	 */
 	private boolean notEquals(Object x, Object y, String testmsg)	{
    		if (x != y || (x != null && !x.equals(y)))	{
 			return true;
@@ -55,6 +71,9 @@ public class Testing	{
 		return false;
 	}
 
+	/*
+	 *Returns true if objects are equal
+	 */
 	private boolean equals(Object x, Object y, String testmsg)	{
    		if (x == y || (x != null && x.equals(y)))	{
 			return true;
@@ -64,16 +83,25 @@ public class Testing	{
 	}
 
 
+	/*
+	 *Increments value of passed in integer
+	 */
 	private int recordEvent(int dataField)	{
 		return ++dataField;
 	}
 
+	/*
+	 *Prints Information about passed tests
+	 */
 	private void testPassed(String testMsg)	{
 		totalTestsPassed = recordEvent(totalTestsPassed);
 		currentSuite.testPassed();
 		System.out.println("[" + suiteCount + ":" + currentSuite.getTestsRan() + "] "  + testMsg + ": Pass");
 	}
 
+	/*
+	 *Ends testing and print summary information
+	 */
 	public void endTesting()	{
 		System.out.printf("==> %d checks in %d Suites finished\n",totalTestsRan,suiteCount);
 		System.out.printf("    %d checks Suceeded, %d failed (%.2f)\n\n",totalTestsPassed,totalTestsFailed,((double) totalTestsRan/ (double) totalTestsRan) * 100);
@@ -85,6 +113,9 @@ public class Testing	{
         }
 	}
 
+	/*
+	 *Prints information about failed tests
+	 */
 	private void testFailed(String testMsg)	{
 		try {
     		throw new TestFailedException(testMsg + ": FAILURE");
@@ -95,6 +126,9 @@ public class Testing	{
 		}
 	}
 
+	/*
+	 *Starts a new test
+	 */
 	private void newTest()	{
 		totalTestsRan = recordEvent(totalTestsRan);
 		currentSuite.newTest();

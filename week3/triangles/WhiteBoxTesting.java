@@ -32,14 +32,23 @@ public class WhiteBoxTesting	{
         return 0;
     }
 
+	/*
+	 *Turns Test mode off: Program will exit with non zero exit code if exception is thrown
+	 */
 	protected static void stopTesting()	{
 		testMode = false;
 	}
 
+	/*
+	 *Turns Test Mode on: Exceptions will be thrown but not cause the program to exit
+	 */
 	protected static void startTesting() {
         testMode = true;
     }
 
+	/*
+	 *Tests String Array is expected length
+	 */
 	protected static int argCountTest(int expected, String[] args)	{
 		try	{
 			if(args.length != expected)	{
@@ -52,6 +61,9 @@ public class WhiteBoxTesting	{
 		return 1;
 	}
 
+	/*
+	 * Sets Program operating mode.
+	 */
 	protected static OperatingMode checkMode( String[] args )	{
 		try	{
 			if(args[0].equals(OperatingMode.UNIT_TEST.mode()) && args.length == 1)	{
@@ -65,7 +77,7 @@ public class WhiteBoxTesting	{
 				return OperatingMode.NOP;
 			}	
 		} catch(ArrayIndexOutOfBoundsException e)	{
-			catchException(e, "Enter test or supply 3 integer values");
+			catchException(e, "Enter cTest, uTest or supply required command line arguments values");
 			return OperatingMode.ERROR_MODE;
 		}
 	}

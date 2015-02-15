@@ -1,5 +1,22 @@
+/*
+ *Library class for general functions and integrating exception handling with testing suite
+ */
 public class SafeGeneric {
 
+	/*
+	 *Safely parses string to long
+	 */
+	public static long stringToLong(String s)	{
+		try {
+			return Long.parseLong(s);
+		} catch (NumberFormatException e) {
+			return WhiteBoxTesting.catchException(e,"Enter Valid Number");
+		}
+	}
+
+	/*
+	 *Safely parses string to int
+	 */
 	public static int stringToInt(String s)	{
 		try {
 			return Integer.parseInt(s);
@@ -15,6 +32,9 @@ public class SafeGeneric {
 		}
 	}
 
+	/*
+	 *Safely checks passed in string for specified character
+	 */
 	public static boolean checkForCharacter(char c, String s, String errMsg)	{
 		int i;
 		try {
@@ -33,6 +53,9 @@ public class SafeGeneric {
 		return false;
 	}	
 
+	/*
+	 *Unit tests for SafeGeneric
+	 */
 	public Testing testSafeGeneric(Testing t)	{
         WhiteBoxTesting.startTesting();	
 		t.enterSuite("SafeGeneric Unit Tests");

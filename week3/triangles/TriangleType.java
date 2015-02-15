@@ -1,3 +1,6 @@
+/*
+ *Describes type of current triangle.  For use with TriangleShape class
+ */
 public enum TriangleType	{
 
 	RIGHT_ANGLE("Right-angled"),

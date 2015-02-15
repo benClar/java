@@ -1,3 +1,7 @@
+/*
+ *Main program for determining type of triangles based on line lengths.
+ */
+
 import java.util.Arrays;
 
 public class Triangle  {
@@ -13,13 +17,19 @@ public class Triangle  {
 		}
 	}
 
+	/*
+	 *Drives program
+	 */
 	public void run(String[] args)	{
 		WhiteBoxTesting.argCountTest(3,args);
 		Arrays.stream(args).forEach(s -> SafeGeneric.checkForCharacter('.', s, "Please specify only integers"));
-		TriangleShape t = new TriangleShape(SafeGeneric.stringToInt(args[0]), SafeGeneric.stringToInt(args[1]), SafeGeneric.stringToInt(args[2]));
+		TriangleShape t = new TriangleShape(SafeGeneric.stringToLong(args[0]), SafeGeneric.stringToLong(args[1]), SafeGeneric.stringToLong(args[2]));
 		System.out.println(t.getTriangleType().getType());
 	}
 
+	/*
+	 *Unit tests for Triangle class
+	 */
 	public Testing testTriangle(Testing t)	{
 		WhiteBoxTesting.startTesting();
 		String[] s = new String[3];
@@ -30,8 +40,10 @@ public class Triangle  {
 		return t;
 	}
 
+	/*
+	 *Component tests for all classes in this program
+	 */
 	public Testing componentTest(Testing t)	{
-		
 		Triangle testT = new Triangle();
 		TriangleShape testS = new TriangleShape();
 		SafeGeneric sg = new SafeGeneric();
