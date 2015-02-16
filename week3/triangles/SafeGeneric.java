@@ -44,7 +44,7 @@ public class SafeGeneric {
 				}
 			}
 		} catch (ArrayIndexOutOfBoundsException e) { 
-			WhiteBoxTesting.catchException(e,errMsg);
+			WhiteBoxTesting.catchException(e,"Please supply 3 arguments or initiate test mode");
 			return true;
 		} catch (IllegalArgumentException e)	{
 			WhiteBoxTesting.catchException(e,errMsg);
@@ -52,6 +52,22 @@ public class SafeGeneric {
 		}
 		return false;
 	}	
+
+	public static boolean checkForCharacterAtIndex(int index, char c, String s, String errMsg)	{
+		try	{
+		if(s.charAt(index) == c)	{
+			throw new IllegalArgumentException("Please remove leading 0");
+		}	
+		} catch (IllegalArgumentException e)	{
+            WhiteBoxTesting.catchException(e,errMsg);
+            return true;
+        } catch (ArrayIndexOutOfBoundsException e)    {
+            WhiteBoxTesting.catchException(e,"Please supply 3 arguments or initiate test mode");
+            return true;
+        }
+
+		return false;
+	}
 
 	/*
 	 *Unit tests for SafeGeneric
@@ -63,6 +79,8 @@ public class SafeGeneric {
 		t.compare(0,"!=",SafeGeneric.stringToInt("1000000"),"Valid string to integer conversion");
 		t.compare(true,"==",SafeGeneric.checkForCharacter('.',"1.1",". detected:"),". exists in String");
 		t.compare(false,"==",SafeGeneric.checkForCharacter('.',"11",". detected:"),". does not exist in String");
+		t.compare(true,"==",SafeGeneric.checkForCharacterAtIndex(0,'0',"01","Detected:"),"Leading zero in string");
+		t.compare(false,"==",SafeGeneric.checkForCharacterAtIndex(0,'0',"10001","Detected:"),"No leading zero in string");
 		t.exitSuite();
 		return t;
 	}

@@ -23,6 +23,7 @@ public class Triangle  {
 	public void run(String[] args)	{
 		WhiteBoxTesting.argCountTest(3,args);
 		Arrays.stream(args).forEach(s -> SafeGeneric.checkForCharacter('.', s, "Please specify only integers"));
+		Arrays.stream(args).forEach(s ->SafeGeneric.checkForCharacterAtIndex(0,'0',s,"Do not use leading zeros"));
 		TriangleShape t = new TriangleShape(SafeGeneric.stringToLong(args[0]), SafeGeneric.stringToLong(args[1]), SafeGeneric.stringToLong(args[2]));
 		System.out.println(t.getTriangleType().getType());
 	}
