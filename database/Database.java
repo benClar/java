@@ -1,15 +1,18 @@
 import com.bclarke.testing.*;
+import com.bclarke.general.*;
 
 public class Database  {
 
 	public static void main( String[] args )    {
-	Database main = new Database();
+	
 	Testing t = new Testing();
+
 	if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.UNIT_TEST)) {
-		main.unitTest(new Testing()).endTesting();
+		Database.unitTest(new Testing()).endTesting();
 	} else if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.COMPONENT_TEST)) {
-		main.componentTest(new Testing()).endTesting();
+		Database.componentTest(new Testing()).endTesting();
 	} else if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.NOP)) {
+		Database main = new Database();
 		main.run(args);
 	}
 }
@@ -18,16 +21,17 @@ public class Database  {
 		/*main Program*/
     }
 
-	public Testing unitTest(Testing t)	{
+	public static Testing unitTest(Testing t)	{
 		WhiteBoxTesting.startTesting();
-		t.enterSuite("CLASSNAME unit tests");
+		t.enterSuite("Database unit tests");
 		/*Unit Tests Here*/
 		t.exitSuite();
 		return t;
 	}
 
-	public Testing componentTest(Testing t) {
-		/*Component Tests Here*/
+	public static Testing componentTest(Testing t) {
+		Field.unitTest(t);
+		Record.unitTest(t);
 		return t;
 	}
 }

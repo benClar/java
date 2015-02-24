@@ -1,3 +1,3 @@
 #!/bin/bash
 
-javac -d ../. SafeGeneric.java
+javac -cp "/Users/benjaminclarke/Java/myPackages/:." -d ../. SafeGeneric.java

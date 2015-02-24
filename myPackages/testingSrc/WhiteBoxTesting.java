@@ -40,6 +40,12 @@ public class WhiteBoxTesting	{
 	public static void stopTesting()	{
 		testMode = false;
 	}
+	/*
+	 *Returns true if program is currently in test mode
+	 */
+	public static boolean getMode()	{
+		return testMode;
+	}
 
 	/*
 	 *Turns Test Mode on: Exceptions will be thrown but not cause the program to exit
