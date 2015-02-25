@@ -13,23 +13,32 @@ public class WhiteBoxTesting	{
 	}
 
 	/*
-	 *Catching custom exceptions
+	 *Catching non fatal custom exceptions
 	 */
     public static int catchException(Exception e) {
         if(testMode == false)   {
-            System.out.println("Fatal Error: " + e);
-            System.exit(1);
+            System.out.println("Error: " + e);
         }
         return 0;
     }
-	
-	/*
-	 *Catching Standard Exceptions and giving custom error message
-	 */
-    public static int catchException(Exception e,String errMsg) {
+
+    /*
+     *Catching Fatal Exceptions
+     */
+    public static int catchFatalException(Exception e,String errMsg) {
         if(testMode == false)   {
             System.out.println("Fatal Error: " + errMsg);
             System.exit(1);
+        }
+        return 0;
+    } 
+	
+	/*
+	 *Catching non-fatal Standard Exceptions and giving custom error message
+	 */
+    public static int catchException(Exception e,String errMsg) {
+        if(testMode == false)   {
+            System.out.println("Error: " + errMsg);
         }
         return 0;
     }

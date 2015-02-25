@@ -7,7 +7,7 @@ public class Field  {
 	private FieldDataType type;
 
 	public Field(String v, FieldDataType t)	{
-		value = validateString(v);
+		value = v;
 		type = t;
 	}
 
@@ -15,7 +15,7 @@ public class Field  {
 		return value;
 	}
 
-	private String validateString(String newValue)	{
+	/* private String validateString(String newValue)	{
 		try	{
 			if(newValue != null)	{
 				return newValue;
@@ -27,7 +27,7 @@ public class Field  {
 			return null;
 		}
 
-	}
+	}*/
 
 	public void changeValue(String newValue)	{
 		value = newValue;
@@ -45,8 +45,8 @@ public class Field  {
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("Field Unit Tests");
 		Field testField = new Field("TestField",FieldDataType.STRING);
-		t.compare(null,"==",testField.validateString(null),"Validating invalid null value");
-		t.compare("pass","==",testField.validateString("pass"),"Validating valid String value");
+		/*t.compare(null,"==",testField.validateString(null),"Validating invalid null value");
+		t.compare("pass","==",testField.validateString("pass"),"Validating valid String value");*/
 		t.exitSuite();
 		return t;
 		}
