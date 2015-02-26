@@ -38,6 +38,7 @@ public class Database  {
 		Field.unitTest(t);
 		Record.unitTest(t);
 		Table.unitTest(t);
+		TableReader.unitTest(t);
 		Database.componentTests_tableRecordField(t);
 		return t;
 	}
@@ -53,7 +54,12 @@ public class Database  {
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("Table-Record-Field Component Tests: Adding Rows");
 		String[] cNames = new String[]{"col1","col2","col3"};
-		Table tab=new Table(cNames);
+		FieldDataType[] dtype = new FieldDataType[3];
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+		}
+
+		Table tab=new Table(cNames,dtype);
 		Field[] newRecord = new Field[3];
 		Field[] recordTooLong = new Field[4];
 		int fieldCount = 0;
@@ -96,7 +102,12 @@ public class Database  {
 		t.enterSuite("Table-Record-Field Component Tests: Deleting Rows");
 
 		String[] cNames = new String[]{"col1","col2","col3"};
-		Table tab=new Table(cNames);
+		FieldDataType[] dtype = new FieldDataType[3];
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+		}
+
+		Table tab=new Table(cNames,dtype);
 		Field[] newRecord = new Field[3];
 
 		for(int i = 0, c = tab.getNumberOfFields(); i < newRecord.length; i++, c++)	{

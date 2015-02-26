@@ -8,36 +8,48 @@ import java.util.* ;
 public class Table  {
 
 	private ArrayList<Record> rows;
-	private ArrayList<String> columnNames;
+	private ArrayList<Column> columnNames;
 
-	public Table(String[] cNames)	{
-		columnNames = new ArrayList<String>();
-		addNewColumnNames(cNames);
+	public Table(Column[] newColumns)	{
+		columnNames = new ArrayList<Column>();
+		addNewColumnNames(newColumns);
 		rows = new ArrayList<Record>();
 	}
 
-	public void addColumn(String[] cNames)	{
-		addNewColumnNames(cNames);
-		extendRows(cNames.length);
+	public Table(String[] cNames, FieldDataType[] types)	{
+		columnNames = new ArrayList<Column>();
+		addNewColumnNames(cNames, types);
+		rows = new ArrayList<Record>();	
+	}
+
+	public void addColumn(String[] cNames, FieldDataType[] types)	{
+		addNewColumnNames(cNames,types);
+		extendRows(cNames.length,types);
 	}
 
 	public int getNumberOfFields()	{
 		return getWidth()*getCardinality();
 	}
 
-	private void addNewColumnNames(String[] cNames)	{
+	private void addNewColumnNames(String[] cNames, FieldDataType[] types)	{
 
 		for(int i = 0; i < cNames.length; i++)	{
-			addNewColumnNames(cNames[i]);
+			addNewColumnNames(cNames[i],types[i]);
 		}
 	}
 
-	private void addNewColumnNames(String cName)	{
-
-			columnNames.add(cName);
+	private void addNewColumnNames(Column[] newColumns)	{
+		for(int i = 0; i < newColumns.length; i++)	{
+			columnNames.add(newColumns[i]);
+		}
 	}
 
-	private int extendRows(int extension)	{
+	private void addNewColumnNames(String cName,FieldDataType t)	{
+
+			columnNames.add(new Column(cName,t));
+	}
+
+	private int extendRows(int extension, FieldDataType[] t)	{
 		try	{
 			if(getCardinality() == 0)	{
 				throw new IllegalArgumentException("Table is empty.");
@@ -51,7 +63,7 @@ public class Table  {
 		Field[] emptyFields = new Field[extension];
 
 		for(int i = 0; i < emptyFields.length; i++)	{
-			emptyFields[i] = new Field(null, FieldDataType.STRING);
+			emptyFields[i] = new Field(null, t[i]);
 		}
 
 		for(int i = 0; i < rows.size(); i++ )	{
@@ -88,7 +100,7 @@ public class Table  {
 
 	public String getColumnName(int targetColumn)	{
 		try	{
-			return columnNames.get(targetColumn);
+			return columnNames.get(targetColumn).getColumnName();
 		} catch (IndexOutOfBoundsException e)	{
 			WhiteBoxTesting.catchException(e,"Column does not exist");
 			return "ERROR";
@@ -122,7 +134,7 @@ public class Table  {
 		if(newName == null)	{
 		 	throw new IllegalArgumentException();
 		} else	{	
-			columnNames.set(getColumnName(oldName),newName);
+			columnNames.get(getColumnName(oldName)).setColumnName(newName);
 		}
 		} catch(IllegalArgumentException e)	{
 			return WhiteBoxTesting.catchFatalException(e,"Column name cannot be null");
@@ -161,7 +173,11 @@ public class Table  {
 		t.enterSuite("Table Unit Tests: Deleting rows from table");
 
 		String[] cNames = new String[]{"col1","col2","col3"};
-		Table tab=new Table(cNames);
+		FieldDataType[] dtype = new FieldDataType[3];
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+		}
+		Table tab=new Table(cNames,dtype);
 		Field[] newRecord = new Field[3];
 
 		for(int i = 0, c = tab.getNumberOfFields(); i < newRecord.length; i++, c++)	{
@@ -188,29 +204,46 @@ public class Table  {
 
 	public static Testing unitTest_AlteringTable(Testing t)	{
 		WhiteBoxTesting.startTesting();
-		t.enterSuite("Table Unit Tests: alerting table structure");
+		t.enterSuite("Table Unit Tests: altering table structure");
 		String[] cNames = new String[]{"col1","col2","col3"};
-		Table tab=new Table(cNames);
+		FieldDataType[] dtype = new FieldDataType[3];
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+		}
+
+		Table tab=new Table(cNames,dtype);
 		t.compare("col1","==",tab.getColumnName(0),"Column 1 named col1");
 		t.compare("ERROR","==",tab.getColumnName(4),"Column 4 does not exist");
-		tab.addNewColumnNames("col4");
+		tab.addNewColumnNames("col4",FieldDataType.STRING);
 		t.compare("ERROR","==",tab.getColumnName(4),"Column 4 has been created");
 		t.compare(4,"==",tab.getWidth(),"Table has four columns");
-		t.compare(0,"==",tab.extendRows(2),"Invalid attempt to extend rows of empty table");
+
+		FieldDataType[] dtype_2 = new FieldDataType[4];
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+		}
+
+		t.compare(0,"==",tab.extendRows(2,dtype_2),"Invalid attempt to extend rows of empty table");
 
 		Field[] newRecord = new Field[4];
 		for(int i = 0; i < newRecord.length; i++)	{
 			newRecord[i]=new Field("field" + i,FieldDataType.STRING);
 		}
+
 		tab.addRecord(newRecord);
 
 		for(int i = 0, c = tab.getNumberOfFields(); i < newRecord.length; i++, c++)	{
 			newRecord[i]=new Field("field" + tab,FieldDataType.STRING);
 		}
 
-		t.compare(0,"==",tab.extendRows(2),"invalid attempt to extend rows due to column row length mismatch");
-		tab.addNewColumnNames(new String[]{"col5","col6"});
-		t.compare(1,"==",tab.extendRows(2),"Table columns successfully extended");
+		FieldDataType[] dtype_3 = new FieldDataType[2];
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+		}
+
+		t.compare(0,"==",tab.extendRows(2,dtype_2),"invalid attempt to extend rows due to column row length mismatch");
+		tab.addNewColumnNames(new String[]{"col5","col6"},dtype_3);
+		t.compare(1,"==",tab.extendRows(2,dtype_3),"Table columns successfully extended");
 		t.compare(6,"==",tab.getRow(0).getNumberOfFields(),"row 0 now has 6 fields");
 		t.compare(2,"==",tab.getColumnName("col3"),"Col3 is name of third column");
 		t.compare(0,"==",tab.getColumnName("test"),"test is not column name in table");

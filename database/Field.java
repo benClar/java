@@ -15,20 +15,6 @@ public class Field  {
 		return value;
 	}
 
-	/* private String validateString(String newValue)	{
-		try	{
-			if(newValue != null)	{
-				return newValue;
-			} else	{
-				throw new IllegalArgumentException();
-			}
-		}	catch(Exception e)	{
-			WhiteBoxTesting.catchException(e,"Invalid string");
-			return null;
-		}
-
-	}*/
-
 	public void changeValue(String newValue)	{
 		value = newValue;
 	}
@@ -45,8 +31,9 @@ public class Field  {
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("Field Unit Tests");
 		Field testField = new Field("TestField",FieldDataType.STRING);
-		/*t.compare(null,"==",testField.validateString(null),"Validating invalid null value");
-		t.compare("pass","==",testField.validateString("pass"),"Validating valid String value");*/
+		t.compare("TestField","==",testField.getValue(),"Field created with value TestField");
+		testField.changeValue("NewTestValue");
+		t.compare("NewTestValue","==",testField.getValue(),"Field value changed to NewTestValue");
 		t.exitSuite();
 		return t;
 		}
