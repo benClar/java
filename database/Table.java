@@ -16,6 +16,10 @@ public class Table  {
 		rows = new ArrayList<Record>();
 	}
 
+	public Column getColumn(int targetColumn)	{
+		return columnNames.get(targetColumn);
+	}
+
 	public Table(String[] cNames, FieldDataType[] types)	{
 		columnNames = new ArrayList<Column>();
 		addNewColumnNames(cNames, types);
@@ -53,7 +57,7 @@ public class Table  {
 		try	{
 			if(getCardinality() == 0)	{
 				throw new IllegalArgumentException("Table is empty.");
-			} else if(getWidth() !=  extension + this.getRow(0).getNumberOfFields())	{
+			} else if(getWidth() !=  extension + this.getRecord(0).getNumberOfFields())	{
 				throw new IllegalArgumentException("Mistmatch between column headings and rows");
 			}
 		} catch(IllegalArgumentException e)	{
@@ -67,7 +71,7 @@ public class Table  {
 		}
 
 		for(int i = 0; i < rows.size(); i++ )	{
-			getRow(i).addNewFields(emptyFields);
+			getRecord(i).addNewFields(emptyFields);
 		}
 
 		return 1;
@@ -81,7 +85,7 @@ public class Table  {
 		return columnNames.size();
 	}
 
-	public Record getRow(int r)	{
+	public Record getRecord(int r)	{
 		return rows.get(r);
 	}
 
@@ -122,7 +126,7 @@ public class Table  {
 
 	public String getFieldValue(int row, int col)	{
 		try	{
-			return getRow(row).getField(col).getValue();
+			return getRecord(row).getField(col).getValue();
 		} catch(IndexOutOfBoundsException e)	{
 			WhiteBoxTesting.catchException(e,"Field does not exist");
 			return "ERROR";
@@ -244,7 +248,7 @@ public class Table  {
 		t.compare(0,"==",tab.extendRows(2,dtype_2),"invalid attempt to extend rows due to column row length mismatch");
 		tab.addNewColumnNames(new String[]{"col5","col6"},dtype_3);
 		t.compare(1,"==",tab.extendRows(2,dtype_3),"Table columns successfully extended");
-		t.compare(6,"==",tab.getRow(0).getNumberOfFields(),"row 0 now has 6 fields");
+		t.compare(6,"==",tab.getRecord(0).getNumberOfFields(),"row 0 now has 6 fields");
 		t.compare(2,"==",tab.getColumnName("col3"),"Col3 is name of third column");
 		t.compare(0,"==",tab.getColumnName("test"),"test is not column name in table");
 		t.compare(0,"==",tab.changeColumnName("col3",null),"Column name cannot be null");

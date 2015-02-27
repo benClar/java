@@ -105,7 +105,7 @@ public class Testing	{
 	 */
 	public void endTesting()	{
 		System.out.printf("==> %d checks in %d Suites finished\n",totalTestsRan,suiteCount);
-		System.out.printf("    %d checks Suceeded, %d failed (%.2f)\n\n",totalTestsPassed,totalTestsFailed,((double) totalTestsRan/ (double) totalTestsRan) * 100);
+		System.out.printf("    %d checks Succeeded, %d failed (%.2f)\n\n",totalTestsPassed,totalTestsFailed,((double) totalTestsRan/ (double) totalTestsRan) * 100);
 
         if(totalTestsFailed == 0)  {
             System.out.printf("[SUCCESS]\n\n");

@@ -72,6 +72,6 @@ public class TestingSuite	{
 	 *Prints status of Suite
 	 */
 	public void suiteStatus()	{
-        System.out.printf("\n--> %d checks, %d checks Suceeded, %d failed (%.2f)\n\n",getTestsRan(),getTestsPassed(),getTestsFailed(),(double) getTestsPassed()/ (double) getTestsRan() * 100);
+        System.out.printf("\n--> %d checks, %d checks Succeeded, %d failed (%.2f)\n\n",getTestsRan(),getTestsPassed(),getTestsFailed(),(double) getTestsPassed()/ (double) getTestsRan() * 100);
 	}
 }

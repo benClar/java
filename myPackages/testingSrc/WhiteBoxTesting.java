@@ -107,7 +107,9 @@ public class WhiteBoxTesting	{
 			} else if(args[0].equals(OperatingMode.COMPONENT_TEST.mode()) && args.length >= 1) {
 				startTesting();
 				if(args.length > 1)	{
+
 					if(args[1].equals("-v"))	{
+
 						Verbose();
 					}
 				}

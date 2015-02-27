@@ -5,6 +5,8 @@
 
 import com.bclarke.testing.*;
 import com.bclarke.general.*;
+import java.io.*;
+import java.util.*;
 
 public class Database  {
 
@@ -21,6 +23,9 @@ public class Database  {
 		main.run(args);
 	}
 }
+
+
+/*----------Testing----------*/
 
 	public void run(String[] args)  {
 		/*main Program*/
@@ -39,7 +44,9 @@ public class Database  {
 		Record.unitTest(t);
 		Table.unitTest(t);
 		TableReader.unitTest(t);
+		TableWriter.unitTest(t);
 		Database.componentTests_tableRecordField(t);
+		Database.componentTest_ReadAndWriteTables(t);
 		return t;
 	}
 
@@ -84,7 +91,7 @@ public class Database  {
 			recordTooLong[i]=new Field("field" + (i + 6),FieldDataType.STRING);
 		}
 		t.compare(0,"==",tab.addRecord(recordTooLong),"Populated table invalid records");
-		t.compare(3,"==",tab.getRow(0).getNumberOfFields(),"row 0 has 3 fields");
+		t.compare(3,"==",tab.getRecord(0).getNumberOfFields(),"row 0 has 3 fields");
 
 		fieldCount = 0;
 		for(int r = 0; r < tab.getCardinality(); r++)	{
@@ -130,5 +137,37 @@ public class Database  {
 		t.compare("field5","==",tab.getFieldValue(0,2),"Third field in first record is field5");
 		t.exitSuite();
 		return t;
+	}
+
+	public static Testing componentTest_ReadAndWriteTables(Testing t)	{
+		WhiteBoxTesting.startTesting();
+		t.enterSuite("TableReader-TablerWriter Component Tests: Comparing Table I/O");
+		TableReader tr = new TableReader("text/testTable_toRead.txt");
+		Table tab = tr.getTable();
+		TableWriter tw = new TableWriter(tab,"text/testTable_toWrite.txt");
+		tw.writeTable();
+
+		StringBuffer readTable = new StringBuffer();
+		StringBuffer writeTable = new StringBuffer();
+		Scanner readScanner;
+		Scanner writeScanner;
+		try	{
+			readScanner = new Scanner(new File("text/testTable_toRead.txt"));
+			writeScanner = new Scanner(new File("text/testTable_toWrite.txt"));
+			while(readScanner.hasNext())	{
+				readTable.append(readScanner.nextLine());
+			}
+
+			while(writeScanner.hasNext())	{
+				writeTable.append(writeScanner.nextLine());
+			}
+		t.compare(new String(writeTable),"==",new String(readTable),"Table has been read from file, stored in table, and written to file successfully");
+		} catch(FileNotFoundException e)	{
+			WhiteBoxTesting.catchFatalException(e,"File not found");
+		}
+
+		t.exitSuite();
+		return t;
+
 	}
 }
