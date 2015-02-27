@@ -9,6 +9,8 @@ public class TableWriter  {
 
 	private final char ESCAPE_CHAR = '\\';
 	private final char DELIMITER = ',';
+	private final char START_META = '[';
+	private final char END_META = ']';
 
 	public TableWriter(Table tab, String savePath)	{
 		tableToWrite = tab;

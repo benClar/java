@@ -10,11 +10,16 @@ public class TableReader  {
 	private Table tableToRead;
 	private StringToParse lineToParse;
 
+	private final char ESCAPE_CHAR = '\\';
+	private final char DELIMITER = ',';
+	private final char START_META = '[';
+	private final char END_META = ']';
+	
 	public TableReader(String tableLocation)	{
 
 		tableFile = openFile(tableLocation);
 		lineToParse = new StringToParse(tableFile.nextLine());
-		tableToRead = new Table(getColumns(lineToParse));
+		tableToRead = new Table(createColumns(lineToParse));
 		populateTable(tableToRead,tableFile);
 
 	}
@@ -39,26 +44,38 @@ public class TableReader  {
 		return tableToRead;
 	}
 
-	private Column[] getColumns(StringToParse firstLine)	{
-		return interrogateColumns(firstLine);
-	}	
-
-	private Column[] interrogateColumns(StringToParse cols)	{
-		ArrayList<String> colNames = new ArrayList<String>();
-		ArrayList<FieldDataType> colType = new ArrayList<FieldDataType>();
+	private Column[] createColumns(StringToParse cols)	{
 		ArrayList<Column> columns = new ArrayList<Column>();
-		for(int i = 0;cols.hasNext(); i++)	{
-			if(i != 0)	{
+
+		while(cols.hasNext())	{
+			columns.add(getColumn(cols));
+			if(cols.hasNext())	{
 				parseCurrentChar(cols,',');
 			}
-			colNames.add(parseColName(cols));
-			beginParseMetaData(cols);
-			colType.add(parseMetaDataTag(cols));
-			parseCurrentChar(cols,'}');
-			parseCurrentChar(cols,']');
-			columns.add(new Column(new String(clean(new StringBuffer(colNames.get(i)))),colType.get(i)));
 		}
+
 		return columns.toArray(new Column[columns.size()]);
+	}
+
+	private Column getColumn(StringToParse cols)	{
+		String colName;
+		FieldDataType colType = null;
+
+		colName = parseColName(cols);
+		parseCurrentChar(cols,'[');
+		while(cols.getCurrentChar() != END_META)	{
+			parseCurrentChar(cols,'{');
+			switch(getTag(cols))	{
+				case "type":
+						colType = parseType(cols);
+						break;
+				default:
+					break;
+			}
+			parseCurrentChar(cols,'}');
+		}
+		parseCurrentChar(cols,']');
+		return new Column(new String(clean(new StringBuffer(colName))),colType);		
 	}
 
 	private int parseCurrentChar(StringToParse line, char expected)	{
@@ -92,18 +109,6 @@ public class TableReader  {
 	}
 
 
-	private int beginParseMetaData(StringToParse line)	{
-		try {
-			if(line.getCurrentChar() != '[')	{
-				throw new Exception();
-			}
-		} catch(Exception e)	{
-			return WhiteBoxTesting.catchFatalException(e,"Expect [ to start metadata definition");	
-		}
-		line.next();
-		return 1;
-	}
-
 	private int parseTagEnd(StringToParse line)	{
 		try {
 			if(line.getCurrentChar() != '}')	{
@@ -123,7 +128,7 @@ public class TableReader  {
 		try{
 			switch(getTag(line))	{
 				case "type" :
-					parseCurrentChar(line,':');
+					
 					return parseType(line);
 				default:
 					throw new Exception();
@@ -139,6 +144,7 @@ public class TableReader  {
 
 	private FieldDataType parseType(StringToParse line)	{
 		try{
+			parseCurrentChar(line,':');
 			switch(parseTagValue(line))	{
 				case "string":
 					return FieldDataType.STRING;
@@ -334,7 +340,7 @@ public class TableReader  {
 		t.compare(FieldDataType.STRING,"==",tr.parseMetaDataTag(testS),"MetaData Type in tag is string");
 		testS.setString("co\\[l1[{type:string}],col2[{type:string}],col3[{type:string}]");
 		Column[] testCol = new Column[3];
-		testCol = tr.getColumns(testS);
+		testCol = tr.createColumns(testS);
 		t.compare("co[l1","==",testCol[0].getColumnName(),"Column 1 is named co\\[l1");
 		t.compare("col2","==",testCol[1].getColumnName(),"Column 2 is named col2");
 		t.compare("col3","==",testCol[2].getColumnName(),"Column 3 is named col3");
