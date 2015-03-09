@@ -5,10 +5,20 @@ public class Column {
 
 	private String columnName;
 	private FieldDataType columnType;
+	private int longestFieldSize;
 
 	public Column(String cName, FieldDataType t)	{
 		columnName = cName;
 		columnType = t;
+		longestFieldSize = cName.length();
+	}
+
+	public int getLongestFieldSize()	{
+		return longestFieldSize;
+	}
+
+	public void setLongestFieldSize(int newLength)	{
+		longestFieldSize = newLength;
 	}
 
 	public FieldDataType getColumnType()	{

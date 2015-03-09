@@ -47,6 +47,7 @@ public class Database  {
 		TableWriter.unitTest(t);
 		Database.componentTests_tableRecordField(t);
 		Database.componentTest_ReadAndWriteTables(t);
+		DataOutput.unitTest(t);
 		return t;
 	}
 

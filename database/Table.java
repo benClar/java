@@ -16,15 +16,16 @@ public class Table  {
 		rows = new ArrayList<Record>();
 	}
 
-	public Column getColumn(int targetColumn)	{
-		return columnNames.get(targetColumn);
-	}
-
 	public Table(String[] cNames, FieldDataType[] types)	{
 		columnNames = new ArrayList<Column>();
 		addNewColumnNames(cNames, types);
 		rows = new ArrayList<Record>();	
 	}
+
+	public Column getColumn(int targetColumn)	{
+		return columnNames.get(targetColumn);
+	}
+
 
 	public void addColumn(String[] cNames, FieldDataType[] types)	{
 		addNewColumnNames(cNames,types);
@@ -94,12 +95,26 @@ public class Table  {
 			if(newFields.length != getWidth())	{
 				throw new IllegalArgumentException();
 			} else	{
+				for(int i = 0; i < newFields.length; i++)	{
+					updateFieldLength(newFields[i],i);
+				}
 				rows.add(new Record(newFields));
 				return 1;
 			}
 		} catch(IllegalArgumentException e)	{
 			return WhiteBoxTesting.catchException(e,"Number of values supplied doesn't match columns in table");
+		} catch(Exception e)	{
+			return WhiteBoxTesting.catchFatalException(e,"Failed to add record to table");
 		}
+	}
+
+	private int updateFieldLength(Field newField, int col)	{
+		if(newField.getValue().length() > columnNames.get(col).getLongestFieldSize())	{
+			columnNames.get(col).setLongestFieldSize(newField.getValue().length());
+			// System.out.println(newField.getValue() + " : "  + newField.getValue().length());
+			return columnNames.get(col).getLongestFieldSize();
+		}
+		return 0;
 	}
 
 	public String getColumnName(int targetColumn)	{
@@ -169,6 +184,35 @@ public class Table  {
 		WhiteBoxTesting.startTesting();
 		Table.unitTest_DeletingRows(t);
 		Table.unitTest_AlteringTable(t);
+		Table.unitTest_AddingRows(t);
+		return t;
+	}
+
+	public static Testing unitTest_AddingRows(Testing t)	{
+		WhiteBoxTesting.startTesting();
+		t.enterSuite("Table Unit Tests: Adding rows to table");
+		
+		Column[] cols = new Column[3];
+		Field[] f = new Field[3];
+		cols[0] = new Column("Col1",FieldDataType.STRING);
+		cols[1] = new Column("Col2",FieldDataType.STRING);
+		cols[2] = new Column("Col3",FieldDataType.STRING);
+		Table tab = new Table(cols);
+		t.compare(4,"==",tab.getColumn(0).getLongestFieldSize(),"Longest String in column 1 is length 4");
+		t.compare(4,"==",tab.getColumn(1).getLongestFieldSize(),"Longest String is column 2 is length 4");
+		t.compare(4,"==",tab.getColumn(2).getLongestFieldSize(),"Longest String is column 3 is length 4");
+
+		f[0] = new Field("val1",FieldDataType.STRING);
+		f[1] = new Field("value2",FieldDataType.STRING);
+		f[2] = new Field("ValueThree",FieldDataType.STRING);
+		tab.addRecord(f);
+
+		t.compare(4,"==",tab.getColumn(0).getLongestFieldSize(),"Longest String in column 1 is length 4");
+		t.compare(6,"==",tab.getColumn(1).getLongestFieldSize(),"Longest String in column 2 is length 6");
+		t.compare(10,"==",tab.getColumn(2).getLongestFieldSize(),"Longest String in column 3 is length 10");
+
+
+		t.exitSuite();
 		return t;
 	}
 
