@@ -49,7 +49,7 @@ public class TableWriter  {
 	}
 
 	private String transformColumn(Column col)	{
-			return new String(escapeSpecialCharacters(col.getColumnName()) + '[' + formatMetaDataType(col) + ']');
+			return new String(escapeSpecialCharacters(col.getColumnName()) + '[' + formatMetaDataType(col) + formatMetaDataKey(col) + ']');
 	}
 
 	public void writeTable()	{
@@ -60,14 +60,30 @@ public class TableWriter  {
 		closeFile();
 	}
 
+	private String formatMetaDataKey(Column col)	{
+		try	{
+			switch(col.getKeyType())	{
+				case PKEY:
+					return "{key:primaryKey}";
+				case NONKEY:
+					return "";
+				default:
+					throw new Exception("Unrecognised Key Type stored in column");
+			}
+		} catch (Exception e)	{
+			WhiteBoxTesting.catchFatalException(e,"Error Formating MetaData Key");
+			return null;
+		}
+	}
+
 	private String formatMetaDataType(Column col)	{
 		try	{
-		switch(col.getColumnType())	{
-			case STRING:
-				return "{type:string}";
-			default:
-				throw new Exception();
-		}
+			switch(col.getColumnType())	{
+				case STRING:
+					return "{type:string}";
+				default:
+					throw new Exception();
+			}
 		} catch (Exception e)	{
 			WhiteBoxTesting.catchFatalException(e,"Unknown datafield type stored in column");
 			return null;
@@ -125,21 +141,36 @@ public class TableWriter  {
 
 	public static Testing unitTest(Testing t)	{
 		TableWriter.unitTest_writingToFile(t);
+		TableWriter.unitTest_transformingMetadata(t);
 		return t;
 	}
 
 	public static Testing unitTest_writingToFile(Testing t)	{
 		WhiteBoxTesting.startTesting();
-		t.enterSuite("TableWriter Unit Tests");
+		t.enterSuite("TableWriter Unit Tests: Writing to file");
 		TableReader tr = new TableReader("text/testTable_writing.txt");
 		Table tab = tr.getTable();
 		TableWriter tw = new TableWriter(tab, "text/testTable_written.txt");
 		t.compare("c\\,ol1","==",tw.escapeSpecialCharacters(tab.getColumn(0).getColumnName()),"Transformed Column name is c\\,ol1");
 		t.compare("{type:string}","==",tw.formatMetaDataType(tab.getColumn(0)),"Metadata format for this column is {type:string}");
-		t.compare("c\\,ol1[{type:string}]","==",tw.transformColumn(tab.getColumn(0)),"Column data to be written c\\,ol1[{type:string}]");
-		t.compare("c\\,ol1[{type:string}],c\\[o\\]l2[{type:string}],col3[{type:string}]","==",tw.formatColumnData(tab),"Column data to write is c\\,ol1[{type:string}],c\\[o\\]l2[{type:string}],col3[{type:string}]");
+		t.compare("c\\,ol1[{type:string}{key:primaryKey}]","==",tw.transformColumn(tab.getColumn(0)),"Column data to be written c\\,ol1[{type:string}{key:primaryKey}]");
+		t.compare("c\\,ol1[{type:string}{key:primaryKey}],c\\[o\\]l2[{type:string}],col3[{type:string}]","==",tw.formatColumnData(tab),"Column data to write is c\\,ol1[{type:string}{key:primaryKey}],c\\[o\\]l2[{type:string}],col3[{type:string}]");
 		t.compare("f1,f2,f3","==",tw.formatRow(tab.getRecord(0)),"first row is formated to string f1,f2,f3");
 		t.compare("f\\,7,f\\[8,f\\]9\\,","==",tw.formatRow(tab.getRecord(2)),"first row is formated to string f\\,7,f\\[8,f\\]9\\,");
+		tw.writeTable();
+		tw.closeFile();
+		t.exitSuite();
+		return t;
+	}
+
+	public static Testing unitTest_transformingMetadata(Testing t)	{
+		WhiteBoxTesting.startTesting();
+		t.enterSuite("TableWriter Unit Tests");
+		TableReader tr = new TableReader("text/testTable_readingMetadata.txt");
+		Table tab = tr.getTable();
+		TableWriter tw = new TableWriter(tab, "text/testTable_writingMetadata.txt");
+		t.compare("col1[{type:string}{key:primaryKey}]","==",tw.transformColumn(new Column("col1",FieldDataType.STRING, FieldDataType.PKEY)),"Formated Primary key column for writing is col1[{type:string}{key:primaryKey}]");
+		t.compare("col1[{type:string}]","==",tw.transformColumn(new Column("col1",FieldDataType.STRING, FieldDataType.NONKEY)),"Formated Non key column for writing is col1[{type:string}]");
 		tw.writeTable();
 		tw.closeFile();
 		t.exitSuite();

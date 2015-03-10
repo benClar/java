@@ -60,7 +60,7 @@ public class TableReader  {
 	private Column getColumn(StringToParse cols)	{
 		String colName;
 		FieldDataType colType = null;
-
+		FieldDataType key = FieldDataType.NONKEY;
 		colName = parseColName(cols);
 		parseCurrentChar(cols,'[');
 		while(cols.getCurrentChar() != END_META)	{
@@ -69,13 +69,16 @@ public class TableReader  {
 				case "type":
 						colType = parseType(cols);
 						break;
+				case "key":
+						key = parseKey(cols);
+					break;
 				default:
 					break;
 			}
 			parseCurrentChar(cols,'}');
 		}
 		parseCurrentChar(cols,']');
-		return new Column(new String(clean(new StringBuffer(colName))),colType);		
+		return new Column(new String(clean(new StringBuffer(colName))),colType,key);		
 	}
 
 	private int parseCurrentChar(StringToParse line, char expected)	{
@@ -140,7 +143,20 @@ public class TableReader  {
 		return null;
 	}
 
-
+	private FieldDataType parseKey(StringToParse line)	{
+		try{
+			parseCurrentChar(line,':');	
+			switch(parseTagValue(line))	{
+				case "primaryKey":
+					return FieldDataType.PKEY;
+				default:
+					throw new Exception();
+			}
+		} catch(Exception e)	{
+			WhiteBoxTesting.catchFatalException(e,"Unknown Key Type");
+		}
+		return null;
+	}
 
 	private FieldDataType parseType(StringToParse line)	{
 		try{

@@ -1,5 +1,6 @@
 public enum FieldDataType	{
 
-	STRING();
-	
+	STRING(),
+	PKEY(),
+	NONKEY();
 }

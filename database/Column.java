@@ -6,11 +6,36 @@ public class Column {
 	private String columnName;
 	private FieldDataType columnType;
 	private int longestFieldSize;
+	private FieldDataType keyStatus;
+
+	public Column(String cName, FieldDataType t, FieldDataType key)	{
+		columnName = cName;
+		columnType = t;
+		longestFieldSize = cName.length();
+		keyStatus = key;
+	}
 
 	public Column(String cName, FieldDataType t)	{
 		columnName = cName;
 		columnType = t;
 		longestFieldSize = cName.length();
+		keyStatus = FieldDataType.NONKEY;
+	}
+
+	public String validateColumnName(String cName)	{
+		if(cName != "")	{
+			return cName;
+		} 
+		try	{
+			throw new Exception("Invalid Column Name");
+		} catch (Exception e)	{
+			WhiteBoxTesting.catchFatalException(e,"Column Name invalid");
+			return null;
+		} 
+	}
+
+	public FieldDataType getKeyType()	{
+		return keyStatus;
 	}
 
 	public int getLongestFieldSize()	{

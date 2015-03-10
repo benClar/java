@@ -18,7 +18,7 @@ public class WhiteBoxTesting	{
 	 */
     public static int catchException(Exception e) {
         if(testMode == false || verbose == true)   {
-            System.out.println("Error: " + e);
+            System.out.println("Error: " + " " + e.getMessage());
         }
         return 0;
     }
@@ -29,10 +29,10 @@ public class WhiteBoxTesting	{
 
     public static int catchFatalException(Exception e,String errMsg) {
         if(testMode == false)   {
-            System.out.println("Fatal Error: " + errMsg);
+            System.out.println("Fatal Error: " + errMsg + " " + e.getMessage());
             System.exit(1);
         } else if (verbose)	{
-			System.out.println("Fatal Error: " + errMsg);
+			System.out.println("Fatal Error: " + errMsg + " " + e.getMessage());
 
         }
         return 0;
@@ -43,7 +43,7 @@ public class WhiteBoxTesting	{
 	 */
     public static int catchException(Exception e,String errMsg) {
         if(testMode == false || verbose == true)   {
-            System.out.println("Error: " + errMsg);
+            System.out.println("Error: " + errMsg + " " + e.getMessage());
         }
         return 0;
     }
