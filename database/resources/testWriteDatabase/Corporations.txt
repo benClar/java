@@ -1,0 +1,2 @@
+col1[{type:string}{key:primaryKey}],col2[{type:string}],col3[{type:string}]
+1,Sony,Japan
