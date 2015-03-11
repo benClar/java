@@ -115,7 +115,6 @@ public class Database  {
 	}
 
 	private boolean tableFileExists(String table)	{
-		System.out.println(getTableFileLocation(table));
 		File f = new File(getTableFileLocation(table));
 		if(f.exists() && !f.isDirectory())	{
 			return true;
@@ -132,7 +131,6 @@ public class Database  {
 				if(getTable(oldName).setTableName(newName) == 1	){
 					 if(changeTableMapping(oldName, newName) == 1)	{
 					 	if(tableFileExists(oldName))	{
-					 		System.out.println("OOOOOLD FILLLLE EXISTSSSS");
 					 		renameTableFile(oldName,newName);
 					 	}
 					 	return 1;
@@ -159,8 +157,6 @@ public class Database  {
 			if(tableFile.renameTo(new File(getTableFileLocation(newName))) == false)	{
 				throw new Exception();
 			} 
-
-			System.out.println("RENAMED");
 			return 1;
 		} catch (Exception e)	{
 			return WhiteBoxTesting.catchException(e,"Table File could not be renamed.");
@@ -184,6 +180,17 @@ public class Database  {
 		}
 	}
 
+	private int removeTableMapping(String tableKey)	{
+		try{
+			if(tables.remove(tableKey) == null)	{
+				throw new Exception();
+			}
+			return 1;
+		} catch (Exception e)	{
+			return WhiteBoxTesting.catchException(e,"Table doesn't exist to remove");
+		}
+	}
+
 	private int deleteTableFile(String tableName)	{
 		File tableToDelete = new File(getTableFileLocation(tableName));
 		try	{
@@ -202,7 +209,7 @@ public class Database  {
 				if(tableFileExists(tName))	{
 					deleteTableFile(tName);
 				}
-				return 1;
+				return removeTableMapping(tName);
 			} else	{
 				throw new Exception();
 			}
@@ -284,11 +291,14 @@ public class Database  {
 		t.compare(dbRead.getTable("Countries").getFieldValueByColumnName("1","col2"),"==",dbWrite.getTable("Countries").getFieldValueByColumnName("1","col2"),"Countries table Column 2 record 1 equal from written and read table");
 		t.compare(true,"==",dbWrite.tableFileExists("Companies"),"Companies table file exists");
 		dbWrite.changeTableName("Companies","Corporations");
-		System.out.println("JUST CHANGED TABLE NAME");
 		t.compare(false,"==",dbWrite.tableFileExists("Companies"),"Companies does not exist table file exists");
 		t.compare(true,"==",dbWrite.tableFileExists("Corporations"),"Corporations table file exists");
-
-		//dbWrite.deleteTableFile(dbWrite.getTable("Appliances").getTableName());
+		t.compare("Sony","==",dbWrite.getTable("Corporations").getFieldValueByColumnName("1","col2"),"Renamed Corporations table has same data");
+		t.compare(null,"==",dbWrite.getTable("Corporations").getFieldValueByColumnName("2","col2"),"Invalid row requested");
+		dbWrite.removeTable("Corporations");
+		t.compare(false,"==",dbWrite.tableFileExists("Corporations"),"Corporations table file has been deleted");
+		t.compare(dbWrite.getTable("Corporations"),"==",null,"Corporation table has been removed from mapping");
+		t.compare(dbWrite.removeTable("FakeTable"),"==",0,"Invalid table attempted to be removed");
 		t.exitSuite();
 		return t;
 	}

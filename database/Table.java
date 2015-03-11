@@ -261,10 +261,10 @@ public class Table  {
 			return getRecord(keyMap.get(key)).getField(col).getValue();
 		} catch(IndexOutOfBoundsException e)	{
 			WhiteBoxTesting.catchException(e,"Field does not exist");
-			return "ERROR";
+			return null;
 		}	catch (NullPointerException e)	{
 			WhiteBoxTesting.catchException(e,"Key Does not exist");
-			return "ERROR";
+			return null;
 		}
 	}
 
