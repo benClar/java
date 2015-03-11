@@ -1,4 +1,0 @@
-col1[{type:string}],col2[{type:string}{key:primaryKey}],col3[{type:string}],col4[{type:string}]
-red,blue,yellow,green
-cat,dog,mouse,bear
-test,this,tables,accuracy

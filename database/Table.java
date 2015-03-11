@@ -7,25 +7,54 @@ import java.util.* ;
 
 public class Table  {
 
+	String tableName;
 	private ArrayList<Record> rows;
 	private ArrayList<Column> columnNames;
 	private HashMap<String, Integer> keyMap;
 	private int keyField;  //! Tracks which column is the primary key
 
-	public Table(Column[] newColumns)	{
+	public Table(Column[] newColumns, String tName)	{
 		columnNames = new ArrayList<Column>();
 		addNewColumnNames(newColumns);
 		rows = new ArrayList<Record>();
 		keyField = validateKeyField();
 		keyMap = new HashMap<String, Integer>();
+		tableName = tName;
 	}
 
-	public Table(String[] cNames, FieldDataType[] types, FieldDataType[] keys)	{
+	public Table(String[] cNames, FieldDataType[] types, FieldDataType[] keys,String tName)	{
 		columnNames = new ArrayList<Column>();
 		addNewColumnNames(cNames, types, keys);
 		rows = new ArrayList<Record>();	
 		keyField = validateKeyField();
 		keyMap = new HashMap<String, Integer>();
+		tableName = tName;
+	}
+
+	public String getTableName()	{
+		try	{
+			if(tableName != null)	{
+				return tableName;
+			}
+			throw new Exception();
+		} catch (Exception e)	{
+			WhiteBoxTesting.catchFatalException(e,"Table has invalid name");
+		}
+		return null;
+
+	}
+
+	public int setTableName(String newName)	{
+		try{
+			if(newName != null && newName.length() > 0)	{
+				tableName = newName;
+				return 1;
+			} else {
+				throw new Exception();
+			}
+		}	catch(Exception e)	{
+			return WhiteBoxTesting.catchException(e,"Invalid Name for table");
+		}
 	}
 
 	public Column getColumn(int targetColumn)	{
@@ -216,7 +245,7 @@ public class Table  {
 	public Integer getColumnIndex(String colName)	{
 		try{
 			for(int i = 0; i < getWidth(); i++){
-				if(colName == getColumnName(i))	{
+				if(colName.equals(getColumnName(i)))	{
 					return i;
 				}
 			}
@@ -239,6 +268,10 @@ public class Table  {
 		}
 	}
 
+	public String getFieldValueByColumnName(String key, String col)	{
+		return getFieldValue(key,getColumnIndex(col));
+	}
+
 	public String getFieldValue(int row, int col)	{
 		try	{
 			return getRecord(row).getField(col).getValue();
@@ -247,6 +280,7 @@ public class Table  {
 			return "ERROR";
 		}
 	}
+
 
 	public int changeFieldValue(String key, String colName, String newValue)	{
 		int mappedValue;
@@ -327,7 +361,7 @@ public class Table  {
 		cols[0] = new Column("Col1",FieldDataType.STRING,FieldDataType.PKEY);
 		cols[1] = new Column("Col2",FieldDataType.STRING,FieldDataType.NONKEY);
 		cols[2] = new Column("Col3",FieldDataType.STRING,FieldDataType.NONKEY);
-		Table tab = new Table(cols);
+		Table tab = new Table(cols,"TestTable");
 
 		t.enterSuite("Table Unit Tests: HashMapping keys to rows");
 		f[0] = new Field("1",FieldDataType.STRING);
@@ -357,7 +391,7 @@ public class Table  {
 		cols[0] = new Column("Col1",FieldDataType.STRING,FieldDataType.PKEY);
 		cols[1] = new Column("Col2",FieldDataType.STRING,FieldDataType.NONKEY);
 		cols[2] = new Column("Col3",FieldDataType.STRING,FieldDataType.NONKEY);
-		Table tab = new Table(cols);
+		Table tab = new Table(cols,"testTable");
 		t.compare(4,"==",tab.getColumn(0).getLongestFieldSize(),"Longest String in column 1 is length 4");
 		t.compare(4,"==",tab.getColumn(1).getLongestFieldSize(),"Longest String is column 2 is length 4");
 		t.compare(4,"==",tab.getColumn(2).getLongestFieldSize(),"Longest String is column 3 is length 4");
@@ -390,7 +424,7 @@ public class Table  {
 			ktype[i] = FieldDataType.NONKEY;
 		}
 		ktype[0] = FieldDataType.PKEY;
-		Table tab=new Table(cNames,dtype,ktype);
+		Table tab=new Table(cNames,dtype,ktype,"testTable");
 		Field[] newRecord = new Field[3];
 
 		for(int i = 0, c = tab.getNumberOfFields(); i < newRecord.length; i++, c++)	{
@@ -428,7 +462,7 @@ public class Table  {
 		}
 		ktype[0] = FieldDataType.PKEY;
 
-		Table tab=new Table(cNames,dtype,ktype);
+		Table tab=new Table(cNames,dtype,ktype,"testTable");
 		t.compare("col1","==",tab.getColumnName(0),"Column 1 named col1");
 		t.compare("ERROR","==",tab.getColumnName(4),"Column 4 does not exist");
 		tab.addNewColumnNames("col4",FieldDataType.STRING);
@@ -474,6 +508,11 @@ public class Table  {
 		t.compare("field2","==",tab.getRecordByKey("field2").getField(0).getValue(),"Field1 key has been updated to field2");
 		tab.changeFieldValue("field2","col2","field2");
 		t.compare("field2","==",tab.getRecordByKey("field2").getField(1).getValue(),"Field1 non-key has been updated to field2");
+		t.compare("testTable","==",tab.getTableName(),"Table name is testtable");
+		t.compare(0,"==",tab.setTableName(""),"Invalid Table name: Empty");
+		t.compare(0,"==",tab.setTableName(null),"Invalid Table name: null");
+		t.compare(1,"==",tab.setTableName("renamedTestTable"),"Valid Table name: renamedTestTable");
+		t.compare("renamedTestTable","==",tab.getTableName(),"Table name now renamedTestTable");
 		t.exitSuite();
 		return t;
 	}

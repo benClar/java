@@ -12,13 +12,34 @@ public class TableWriter  {
 	private final char START_META = '[';
 	private final char END_META = ']';
 
-	public TableWriter(Table tab, String savePath)	{
+	private final String DATABASE_ROOT_DIRECTORY = "resources";
+	public TableWriter(Table tab, String databaseName)	{
 		tableToWrite = tab;
 		try	{
-			saveTable = new BufferedWriter(new FileWriter(savePath));
+			saveTable = new BufferedWriter(new FileWriter(DATABASE_ROOT_DIRECTORY + "/" +  databaseName + "/" + tab.getTableName() + ".txt"));
 		} catch (IOException e)	{
 			WhiteBoxTesting.catchFatalException(e,"IOException");
 		}
+	}
+
+	public TableWriter()	{
+		tableToWrite = null;
+		saveTable = null;
+	}
+
+	public void writeTable(Table tab, String databaseName)	{
+		tableToWrite = tab;
+		try	{
+			saveTable = new BufferedWriter(new FileWriter(DATABASE_ROOT_DIRECTORY + "/" + databaseName + "/" + tab.getTableName() + ".txt"));
+		} catch (IOException e)	{
+			WhiteBoxTesting.catchFatalException(e,"IOException");
+		}
+
+		writeString(formatColumnData(tableToWrite));
+		for(int i = 0; i < tableToWrite.getCardinality(); i++)	{
+			writeString(formatRow(tableToWrite.getRecord(i)));
+		}
+		closeFile();
 	}
 
 	private int writeChar(char c)	{
@@ -59,6 +80,7 @@ public class TableWriter  {
 		}
 		closeFile();
 	}
+
 
 	private String formatMetaDataKey(Column col)	{
 		try	{
@@ -148,9 +170,9 @@ public class TableWriter  {
 	public static Testing unitTest_writingToFile(Testing t)	{
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("TableWriter Unit Tests: Writing to file");
-		TableReader tr = new TableReader("text/testTable_writing.txt");
+		TableReader tr = new TableReader("text", "testTable_writing");
 		Table tab = tr.getTable();
-		TableWriter tw = new TableWriter(tab, "text/testTable_written.txt");
+		TableWriter tw = new TableWriter(tab, "text");
 		t.compare("c\\,ol1","==",tw.escapeSpecialCharacters(tab.getColumn(0).getColumnName()),"Transformed Column name is c\\,ol1");
 		t.compare("{type:string}","==",tw.formatMetaDataType(tab.getColumn(0)),"Metadata format for this column is {type:string}");
 		t.compare("c\\,ol1[{type:string}{key:primaryKey}]","==",tw.transformColumn(tab.getColumn(0)),"Column data to be written c\\,ol1[{type:string}{key:primaryKey}]");
@@ -166,9 +188,9 @@ public class TableWriter  {
 	public static Testing unitTest_transformingMetadata(Testing t)	{
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("TableWriter Unit Tests");
-		TableReader tr = new TableReader("text/testTable_readingMetadata.txt");
+		TableReader tr = new TableReader("text", "testTable_readingMetadata");
 		Table tab = tr.getTable();
-		TableWriter tw = new TableWriter(tab, "text/testTable_writingMetadata.txt");
+		TableWriter tw = new TableWriter(tab, "text");
 		t.compare("col1[{type:string}{key:primaryKey}]","==",tw.transformColumn(new Column("col1",FieldDataType.STRING, FieldDataType.PKEY)),"Formated Primary key column for writing is col1[{type:string}{key:primaryKey}]");
 		t.compare("col1[{type:string}]","==",tw.transformColumn(new Column("col1",FieldDataType.STRING, FieldDataType.NONKEY)),"Formated Non key column for writing is col1[{type:string}]");
 		tw.writeTable();

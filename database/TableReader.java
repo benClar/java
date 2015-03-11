@@ -14,14 +14,30 @@ public class TableReader  {
 	private final char DELIMITER = ',';
 	private final char START_META = '[';
 	private final char END_META = ']';
-	
-	public TableReader(String tableLocation)	{
+	private final String DATABASE_ROOT_DIRECTORY = "resources";
+	public TableReader(String databaseName, String tableName)	{
 
-		tableFile = openFile(tableLocation);
+		tableFile = openFile(DATABASE_ROOT_DIRECTORY + "/" + databaseName + "/" + tableName + ".txt");
 		lineToParse = new StringToParse(tableFile.nextLine());
-		tableToRead = new Table(createColumns(lineToParse));
+		tableToRead = new Table(createColumns(lineToParse),tableName);
 		populateTable(tableToRead,tableFile);
+		closeFile();
 
+	}
+
+	public TableReader()	{
+		tableFile = null;
+		tableToRead = null;
+		lineToParse = null;
+	}
+
+	public Table readTable(String databaseName, String tableName)	{
+		tableFile = openFile(DATABASE_ROOT_DIRECTORY + "/" + databaseName + "/" + tableName + ".txt");
+		lineToParse = new StringToParse(tableFile.nextLine());
+		tableToRead = new Table(createColumns(lineToParse),tableName);
+		populateTable(tableToRead,tableFile);
+		closeFile();
+		return getTable();
 	}
 
 	private void populateTable(Table targetTable, Scanner file)	{
@@ -250,10 +266,9 @@ public class TableReader  {
 		Scanner newFile;
 
 		try	{
-			newFile = new Scanner(new File(f));
-			
+			newFile = new Scanner(new File(f));	
 		} catch(FileNotFoundException e)	{
-			WhiteBoxTesting.catchFatalException(e,"File not found");
+			WhiteBoxTesting.catchException(e,"File not found");
 			return null;
 		}
 		return newFile;
@@ -279,10 +294,10 @@ public class TableReader  {
 	private static Testing unitTest_OpeningFile(Testing t)	{
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("TableReader Unit Tests: Opening file");
-		TableReader tr = new TableReader("text/testTable_types.txt");
+		TableReader tr = new TableReader("text","testTable_types");
 		tr.closeFile();
-		t.compare(null,"!=",tr.openFile("text/testTable.txt"),"Test Table file has been opened");
-		t.compare(null,"==",tr.openFile("text/fakeFile.txt"),"Test Table file does not exist");
+		t.compare(null,"!=",tr.openFile(tr.DATABASE_ROOT_DIRECTORY + "/" +  "text/testTable.txt"),"Test Table file has been opened");
+		t.compare(null,"==",tr.openFile("text/fakeFile"),"Test Table file does not exist");
 		tr.closeFile();
 		t.exitSuite();
 		return t;
@@ -292,9 +307,8 @@ public class TableReader  {
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("TableReader Unit Tests: Reading file");
 
-		TableReader tr = new TableReader("text/testTable_types.txt");
+		TableReader tr = new TableReader("text","testTable_types");
 		tr.closeFile();
-		Scanner testInput = tr.openFile("text/testTable.txt");
 
 		StringBuffer[] tokenized = tr.sliceLine("col1,col2,col3");
 
@@ -341,7 +355,7 @@ public class TableReader  {
 	private static Testing unitTest_columnParsing(Testing t)	{
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("TableReader Unit Tests: Reading file");
-		TableReader tr = new TableReader("text/testTable_types.txt");
+		TableReader tr = new TableReader("text","testTable_types");
 		StringToParse testS = new StringToParse("col1[{type: string}]");
 		t.compare("col1","==",new String(tr.parseColName(testS)),"column name in this string is col1");
 		testS.setString("col\\,1[{type: string}]");
@@ -370,7 +384,7 @@ public class TableReader  {
 	private static Testing unitTest_creatingTableReader(Testing t)	{
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("TableReader Unit Tests: Creating and populating Table Reader Object");
-		TableReader tr = new TableReader("text/testTable_types.txt");
+		TableReader tr = new TableReader("text","testTable_types");
 		Table tab = tr.getTable();
 		t.compare("c,ol1","==",tab.getColumnName(0),"Column 1 is called c,ol1");
 		t.compare("c[o]l2","==",tab.getColumnName(1),"Column 2 is called c[o]l2");

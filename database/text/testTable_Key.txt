@@ -1,4 +1,0 @@
-col1[{type:string}],col2[{type:string}{key:primaryKey}],col3[{type:string}],col4[{type:string}]
-r\,e\\d,blue,\[y\]\[e\\llow,green
-cat,d\,\,\,o\[g,mouse,bear
-test,th\[is,table's,accuracy

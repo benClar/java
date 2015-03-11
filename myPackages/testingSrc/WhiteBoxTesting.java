@@ -18,7 +18,11 @@ public class WhiteBoxTesting	{
 	 */
     public static int catchException(Exception e) {
         if(testMode == false || verbose == true)   {
-            System.out.println("Error: " + " " + e.getMessage());
+        	if(e.getMessage() != null)	{
+            	System.out.println("Error: " + " " + e.getMessage());
+        	} else	{
+        		System.out.println("Error: Unknown Error.");
+        	}
         }
         return 0;
     }
@@ -29,21 +33,36 @@ public class WhiteBoxTesting	{
 
     public static int catchFatalException(Exception e,String errMsg) {
         if(testMode == false)   {
-            System.out.println("Fatal Error: " + errMsg + " " + e.getMessage());
+            printFatalError(e,errMsg);
             System.exit(1);
         } else if (verbose)	{
-			System.out.println("Fatal Error: " + errMsg + " " + e.getMessage());
-
+			printFatalError(e,errMsg);
         }
         return 0;
     } 
+
+    private static void printFatalError(Exception e, String errMsg)	{
+    	if(e.getMessage() != null)	{
+    		System.out.println("Fatal Error: " + errMsg + " " + e.getMessage());
+    	} else	{
+    		System.out.println("Fatal Error: " + errMsg);
+    	}
+    }
+
+    private static void printNonFatalError(Exception e, String errMsg)	{
+    	if(e.getMessage() != null)	{
+    		System.out.println("Error: " + errMsg + " " + e.getMessage());
+    	} else	{
+    		System.out.println("Error: " + errMsg);
+    	}
+    }
 	
 	/*
 	 *Catching nonfatal Standard Exceptions and giving custom error message
 	 */
     public static int catchException(Exception e,String errMsg) {
         if(testMode == false || verbose == true)   {
-            System.out.println("Error: " + errMsg + " " + e.getMessage());
+            printNonFatalError(e,errMsg);
         }
         return 0;
     }

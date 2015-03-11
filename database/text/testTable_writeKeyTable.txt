@@ -1,4 +1,0 @@
-col0[{type:string}],col1[{type:string}{key:primaryKey}],col2[{type:string}]
-Red,1,Bus
-Blue,2,Car\[honda\]
-green,3,MotorBike\,

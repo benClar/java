@@ -1,4 +1,0 @@
-c\,ol1[{type:string}{key:primaryKey}],c\[o\]l2[{type:string}],col3[{type:string}]
-f1,f2,f3
-f4,f5,f6
-f7,f8,f9

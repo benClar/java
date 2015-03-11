@@ -1,239 +1,335 @@
-/**
- *To do:
- *-Replace with catchFatalException where required.
- */
-
 import com.bclarke.testing.*;
 import com.bclarke.general.*;
+import java.util.* ;
 import java.io.*;
-import java.util.*;
+
 
 public class Database  {
 
-	public static void main( String[] args )    {
-	
-	Testing t = new Testing();
+	HashMap<String, Table> tables;
+	String databaseName;
 
-	if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.UNIT_TEST)) {
-		Database.unitTest(new Testing()).endTesting();
-	} else if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.COMPONENT_TEST)) {
-		Database.componentTest(new Testing()).endTesting();
-	} else if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.NOP)) {
-		Database main = new Database();
-		main.run(args);
+	private final String TABLE_INDEX_FILE = ".dbTableIndex.txt";
+	private final String DATABASE_ROOT_DIRECTORY = "resources";
+
+	public Database(String name)	{
+		databaseName = name; 
+		tables = new HashMap<String, Table>();
 	}
-}
 
-	public void run(String[] args)  {
-		/*main Program*/
+	public void writeDatabase()	{
+		createDatabaseFolder();
+		writeDatabaseIndex();
+		writeTables();
+	}
+
+	private void writeTables()	{
+		Map<String, Table> map = tables;
+		TableWriter tw = new TableWriter();
+		for(Table tValue : map.values())	{
+			tw.writeTable(tValue,getDatabaseName());
+		}
+	}
+
+	private Scanner openIndexFile()	{
+		File indexFile = new File(DATABASE_ROOT_DIRECTORY + "/" + getDatabaseName() + "/" + TABLE_INDEX_FILE);
+		try	{
+			if(indexFile.exists())	{
+				Scanner scannedIndexFile = new Scanner(indexFile);
+				return scannedIndexFile;
+
+			} else {
+				throw new Exception();
+			}
+		} catch (Exception e)	{
+			WhiteBoxTesting.catchFatalException(e,"Table Index File not found");
+			return null;
+		}
+	}
+
+	private int createDatabaseFolder()	{
+		if(!databaseExists())	{
+			File databaseDir = new File(DATABASE_ROOT_DIRECTORY + "/" + getDatabaseName() + "/");
+			databaseDir.mkdir();
+			return 1;
+		} 
+		return 0;
+	}
+
+	private void writeDatabaseIndex()	{
+		Map<String, Table> map = tables;
+		try	{			
+			BufferedWriter tableIndex = new BufferedWriter(new FileWriter(DATABASE_ROOT_DIRECTORY + "/" + getDatabaseName() + "/" + TABLE_INDEX_FILE));
+			for(String key : map.keySet())	{
+				tableIndex.write(key);
+				tableIndex.newLine();
+			}
+			tableIndex.close();
+		} catch (IOException e)	{
+			WhiteBoxTesting.catchFatalException(e,"IOException");
+		}
+
+	}
+
+	private boolean databaseExists()	{
+		File f = new File(DATABASE_ROOT_DIRECTORY + "/" + getDatabaseName());
+		if(f.exists() && f.isDirectory())	{
+			return true;
+		} else	{
+			return false;
+		}
+	}
+
+	public String getDatabaseName()	{
+		return databaseName;
+	}
+
+	public int addTable(Table newTable)	{
+		try	{
+			if(databaseContainsTable(newTable.getTableName()) == false)	{
+				tables.put(newTable.getTableName(),newTable);
+				return 1;
+			} else	{
+				throw new Exception();
+			}
+		} catch (Exception e)	{
+			return WhiteBoxTesting.catchException(e,"Table name already exists");
+		}
+	}
+
+	public void populateDatabase()	{
+		if(databaseExists())	{
+			Scanner indexFile = openIndexFile();
+			TableReader newTable = new TableReader();
+			try	{
+				while(indexFile.hasNext())	{
+					if(addTable(newTable.readTable(getDatabaseName(),indexFile.nextLine())) == 0)	{
+						throw new Exception();
+					}
+				}
+				indexFile.close();
+			} catch (Exception e)	{
+				WhiteBoxTesting.catchFatalException(e,"Duplicate table on file.");
+			}
+		}
+	}
+
+	private boolean tableFileExists(String table)	{
+		System.out.println(getTableFileLocation(table));
+		File f = new File(getTableFileLocation(table));
+		if(f.exists() && !f.isDirectory())	{
+			return true;
+		} else	{
+			return false;
+		}
+
+	}
+
+
+	public int changeTableName(String oldName, String newName)	{
+		try	{
+			if(databaseContainsTable(newName) == false)	{
+				if(getTable(oldName).setTableName(newName) == 1	){
+					 if(changeTableMapping(oldName, newName) == 1)	{
+					 	if(tableFileExists(oldName))	{
+					 		System.out.println("OOOOOLD FILLLLE EXISTSSSS");
+					 		renameTableFile(oldName,newName);
+					 	}
+					 	return 1;
+					 } 
+				} 
+			} else {
+				throw new Exception(" Table" + newName + "Already exists ");
+			}
+		} catch (NullPointerException e)	{
+			return WhiteBoxTesting.catchException(e,"Table" + oldName + "does not exist");
+		} catch (Exception e)	{
+			return WhiteBoxTesting.catchException(e," Could not create Table ");
+		}
+		return 0;
+	} 
+
+	private String getTableFileLocation(String tName)	{
+		return (DATABASE_ROOT_DIRECTORY + "/" + getDatabaseName() + "/" + tName + ".txt");
+	}
+
+	private int renameTableFile(String oldName, String newName)	{
+		File tableFile = new File(getTableFileLocation(oldName));
+		try	{
+			if(tableFile.renameTo(new File(getTableFileLocation(newName))) == false)	{
+				throw new Exception();
+			} 
+
+			System.out.println("RENAMED");
+			return 1;
+		} catch (Exception e)	{
+			return WhiteBoxTesting.catchException(e,"Table File could not be renamed.");
+		}
+	}
+
+	public Table getTable(String tableName)	{
+		return tables.get(tableName);
+	}
+
+	private int changeTableMapping(String oldName, String newName)	{
+		try	{
+			Table tableToChange = tables.get(oldName);
+			if (tableToChange == null)	{
+				throw new Exception();
+			}
+			tables.remove(oldName);
+			return addTable(tableToChange);
+		} catch (Exception e){
+			return WhiteBoxTesting.catchFatalException(e,"Table with null value stored in Database");
+		}
+	}
+
+	private int deleteTableFile(String tableName)	{
+		File tableToDelete = new File(getTableFileLocation(tableName));
+		try	{
+			if(!tableToDelete.delete()){
+				throw new Exception();
+			}
+			return 1;
+		} catch (Exception e)	{
+			return WhiteBoxTesting.catchException(e,"Unable to delete table file " + tableName);
+		}
+	}
+
+	private int removeTable(String tName)	{
+		try { 
+			if(databaseContainsTable(tName))	{
+				if(tableFileExists(tName))	{
+					deleteTableFile(tName);
+				}
+				return 1;
+			} else	{
+				throw new Exception();
+			}
+		} catch(Exception e)	{
+			return WhiteBoxTesting.catchException(e,"Table does not exist to delete");
+		}
+	}
+
+	private boolean databaseContainsTable(String tableName)	{
+		return tables.containsKey(tableName);
 	}
 
 /*----------Testing----------*/
 
-
+	public static void main( String[] args )    {
+	 
+		if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.UNIT_TEST)) {
+			Database.unitTest(new Testing()).endTesting();
+		} 
+	}
 
 	public static Testing unitTest(Testing t)	{
 		WhiteBoxTesting.startTesting();
-		t.enterSuite("Database unit tests");
-		/*Unit Tests Here*/
-		t.exitSuite();
+		Database.unitTest_AddTableToDatabase(t);
+		Database.unitTest_databaseIO(t);
 		return t;
 	}
 
-	public static Testing componentTest(Testing t) {
-		Field.unitTest(t);
-		Record.unitTest(t);
-		Table.unitTest(t);
-		TableReader.unitTest(t);
-		TableWriter.unitTest(t);
-		DataOutput.unitTest(t);
-		Database.componentTests_tableRecordField(t);
-		Database.componentTest_ReadAndWriteTables(t);
-		Database.componentTests_keyTesting(t);
-		return t;
-	}
-
-	public static Testing componentTests_tableRecordField(Testing t)	{
+	public static Testing unitTest_databaseIO(Testing t)	{
 		WhiteBoxTesting.startTesting();
-		componentTests_AddingRows(t);
-		componentTests_DeletingRows(t);
-		return t;
-	}
-
-	public static Testing componentTests_AddingRows(Testing t)	{
-		WhiteBoxTesting.startTesting();
-		t.enterSuite("Table-Record-Field Component Tests: Adding Rows");
+		t.enterSuite("Database Unit Tests: Database I/O");
 		String[] cNames = new String[]{"col1","col2","col3"};
 		FieldDataType[] dtype = new FieldDataType[3];
 		FieldDataType[] ktype = new FieldDataType[3];
+		Field[] f = new Field[3];
+
+
 		for(int i = 0; i < dtype.length; i++)	{
 			dtype[i] = FieldDataType.STRING;
 			ktype[i] = FieldDataType.NONKEY;
 		}
 		ktype[0] = FieldDataType.PKEY;
-		Table tab=new Table(cNames,dtype,ktype);
-		Field[] newRecord = new Field[3];
-		Field[] recordTooLong = new Field[4];
-		int fieldCount = 0;
 
-		for(int i = 0; i < newRecord.length; i++)	{
-			fieldCount++;
-			newRecord[i]=new Field("field" + fieldCount,FieldDataType.STRING);
 
-		}
-		t.compare(1,"==",tab.addRecord(newRecord),"Populated table with one valid record");
-		t.compare(1,"==",tab.getCardinality(),"Table cardinality is 1");
+
+		Table tab1=new Table(cNames,dtype,ktype,"Appliances");
+		Table tab2=new Table(cNames,dtype,ktype,"Companies");
+		Table tab3=new Table(cNames,dtype,ktype,"Countries");
+		Database dbWrite = new Database("testWriteDatabase");
+		Database dbRead = new Database("testReadDatabase");
+		dbWrite.addTable(tab1);
+		dbWrite.addTable(tab2);
+		dbWrite.addTable(tab3);
+
+
+		f[0] = new Field("1",FieldDataType.STRING);
+		f[1] = new Field("Sony",FieldDataType.STRING);
+		f[2] = new Field("TV",FieldDataType.STRING);
+		dbWrite.getTable("Appliances").addRecord(f);
+
+		f[0] = new Field("1",FieldDataType.STRING);
+		f[1] = new Field("Sony",FieldDataType.STRING);
+		f[2] = new Field("Japan",FieldDataType.STRING);
+		dbWrite.getTable("Companies").addRecord(f);
+
+		f[0] = new Field("1",FieldDataType.STRING);
+		f[1] = new Field("Asia",FieldDataType.STRING);
+		f[2] = new Field("Japan",FieldDataType.STRING);
+		dbWrite.getTable("Countries").addRecord(f);
+
 		
-		for(int i = 0; i < newRecord.length; i++)	{
-			fieldCount++;
-			newRecord[i]=new Field("field" + fieldCount,FieldDataType.STRING);
-		}
+		dbWrite.writeDatabase();
 
-		t.compare(1,"==",tab.addRecord(newRecord),"Populated table with two valid records");
-		t.compare(2,"==",tab.getCardinality(),"Table cardinality is 2");
-		
-		for(int i = 0; i < recordTooLong.length; i++)	{
-			recordTooLong[i]=new Field("field" + (i + 6),FieldDataType.STRING);
-		}
-		t.compare(0,"==",tab.addRecord(recordTooLong),"Populated table invalid records");
-		t.compare(3,"==",tab.getRecord(0).getNumberOfFields(),"row 0 has 3 fields");
+		dbRead.databaseName = "testWriteDatabase";
+		dbRead.populateDatabase();
+		t.compare(dbRead.getTable("Appliances").getFieldValueByColumnName("1","col2"),"==","Sony","Column 2 record 1 equal to Sony from read Appliances table");
+		t.compare(dbRead.getTable("Appliances").getFieldValueByColumnName("1","col2"),"==",dbWrite.getTable("Appliances").getFieldValueByColumnName("1","col2"),"Appliance Table column 2 are equal from written and read table");
+		t.compare(dbRead.getTable("Countries").getFieldValueByColumnName("1","col2"),"==","Asia","Column 2 record 1 equal to Asia from read Countries table");
+		t.compare(dbRead.getTable("Countries").getFieldValueByColumnName("1","col2"),"==",dbWrite.getTable("Countries").getFieldValueByColumnName("1","col2"),"Countries table Column 2 record 1 equal from written and read table");
+		t.compare(true,"==",dbWrite.tableFileExists("Companies"),"Companies table file exists");
+		dbWrite.changeTableName("Companies","Corporations");
+		System.out.println("JUST CHANGED TABLE NAME");
+		t.compare(false,"==",dbWrite.tableFileExists("Companies"),"Companies does not exist table file exists");
+		t.compare(true,"==",dbWrite.tableFileExists("Corporations"),"Corporations table file exists");
 
-		fieldCount = 0;
-		for(int r = 0; r < tab.getCardinality(); r++)	{
-			for(int c = 0; c < tab.getWidth(); c++)	{
-				fieldCount++;
-				t.compare("field"+fieldCount,"==",tab.getFieldValue(r,c),"Field value is " + "field"+fieldCount);
-			}
-		}
+		//dbWrite.deleteTableFile(dbWrite.getTable("Appliances").getTableName());
 		t.exitSuite();
 		return t;
 	}
 
-	public static Testing componentTests_keyTesting(Testing t)	{
+	public static Testing unitTest_AddTableToDatabase(Testing t)	{
 		WhiteBoxTesting.startTesting();
-		t.enterSuite("TableReader-TableWriter-DataOutput-Table-Record-Field Component Tests: Primary Key Functionality");
-
-		//Create Column array
-		String[] cNames = new String[3]; 
-		FieldDataType[] fType = new FieldDataType[3];
-		FieldDataType[] kType = new FieldDataType[3];
-		Field[] fToAdd = new Field[3];
-		for(int i = 0; i < cNames.length; i++)	{
-			cNames[i] = "col" + i;
-			fType[i] = FieldDataType.STRING;
-			kType[i] = FieldDataType.NONKEY;
-		}
-		kType[1] = FieldDataType.PKEY;
-
-		fToAdd[0] = new Field("Red",FieldDataType.STRING);
-		fToAdd[1] = new Field("1",FieldDataType.STRING);
-		fToAdd[2] = new Field("Bus",FieldDataType.STRING);
-
-		Table tab = new Table(cNames,fType,kType);
-		t.compare(1,"==",tab.getKey(),"Primary key is second row");
-		t.compare(1,"==",tab.addRecord(fToAdd),"Added valid record to table");
-		t.compare(0,"==",tab.addRecord(fToAdd),"Added invalid record to table: Duplicate key");
-
-		fToAdd[0] = new Field("Blue",FieldDataType.STRING);
-		fToAdd[1] = new Field("2",FieldDataType.STRING);
-		fToAdd[2] = new Field("Car[honda]",FieldDataType.STRING);
-
-		t.compare(1,"==",tab.addRecord(fToAdd),"Added valid record to table");
-
-		fToAdd[0] = new Field("green",FieldDataType.STRING);
-		fToAdd[1] = new Field("3",FieldDataType.STRING);
-		fToAdd[2] = new Field("MotorBike,",FieldDataType.STRING);
-
-		t.compare(1,"==",tab.addRecord(fToAdd),"Added valid record to table");
-
-		t.compare(3,"==",tab.getCardinality(),"Table has three rows");
-		t.compare("MotorBike,","==",tab.getFieldValue("3",2),"Record with key three has motorbike in third field");
-		TableWriter tw = new TableWriter(tab,"text/testTable_writeKeyTable.txt");
-		tw.writeTable();
-		TableReader tr = new TableReader("text/testTable_writeKeyTable.txt");
-		tab = tr.getTable();
-
-		t.compare(1,"==",tab.getKey(),"Table from File: Primary key is second row");
-		t.compare(3,"==",tab.getCardinality(),"Table has three rows");
-
-		t.compare("Red","==",tab.getFieldValue("1",0),"Table from File: key 1 field 1 is red");
-		t.compare("Bus","==",tab.getFieldValue("1",2),"Table from File: key 1 field 3 is Bus");
-
-		t.compare("Blue","==",tab.getFieldValue("2",0),"Table from File: key 2 field 1 is Blue ");
-		t.compare("Car[honda]","==",tab.getFieldValue("2",2),"Table from File: key 3 field 1 is Car[honda]");
-
-		t.compare("green","==",tab.getFieldValue("3",0),"Table from File: key 3 field 1 is green");
-		t.compare("MotorBike,","==",tab.getFieldValue("3",2),"Table from File: key 3 field 3 is Motorbike,");
-
-		t.exitSuite();
-		return t;
-	}
-	public static Testing componentTests_DeletingRows(Testing t)	{
-		WhiteBoxTesting.startTesting();
-		t.enterSuite("Table-Record-Field Component Tests: Deleting Rows");
-
+		t.enterSuite("Database Unit Tests: Adding Table to database");
 		String[] cNames = new String[]{"col1","col2","col3"};
 		FieldDataType[] dtype = new FieldDataType[3];
 		FieldDataType[] ktype = new FieldDataType[3];
+
 		for(int i = 0; i < dtype.length; i++)	{
 			dtype[i] = FieldDataType.STRING;
 			ktype[i] = FieldDataType.NONKEY;
 		}
 		ktype[0] = FieldDataType.PKEY;
-		Table tab=new Table(cNames,dtype,ktype);
-		Field[] newRecord = new Field[3];
 
-		for(int i = 0, c = tab.getNumberOfFields(); i < newRecord.length; i++, c++)	{
-			newRecord[i]=new Field("field" + c,FieldDataType.STRING);
-		}
+		Table tab=new Table(cNames,dtype,ktype,"databaseTestTable");
+		Table tab2=new Table(cNames,dtype,ktype,"databaseTestTable2");
 
-		tab.addRecord(newRecord);
+		Database db = new Database("testDatabase");
 
-		for(int i = 0, c = tab.getNumberOfFields(); i < newRecord.length; i++, c++)	{
-			newRecord[i]=new Field("field" + c,FieldDataType.STRING);
-		}
-
-		tab.addRecord(newRecord);
-
-		int currCard = tab.getCardinality();
-		t.compare(1,"==",tab.deleteRowByKeyValue("field0"),"Removed First Row");
-		t.compare(tab.getCardinality(),"==",currCard - 1,"Table cardinality has decreased by one");
-		t.compare("field3","==",tab.getFieldValue(0,0),"First field in first record is field3");
-		t.compare("field4","==",tab.getFieldValue(0,1),"Second field in first record is field4");
-		t.compare("field5","==",tab.getFieldValue(0,2),"Third field in first record is field5");
+		t.compare(db.addTable(tab),"==",1,"Adding valid table to database");
+		t.compare(db.addTable(tab),"==",0,"Adding duplicate invalid table to database");
+		t.compare(db.changeTableName("databaseTestTable","renamedTestTable"),"==",1,"Successfully renamed Table to renamedTestTable");
+		t.compare("renamedTestTable","==",db.getTable("renamedTestTable").getTableName(),"Name Change cascaded to Table object successfully: renamedTestTable");
+		t.compare(db.changeTableName("renamedTestTable","databaseTestTable"),"==",1,"Successfully renamed Table to databaseTestTable");
+		t.compare("databaseTestTable","==",db.getTable("databaseTestTable").getTableName(),"Name Change cascaded to Table object successfully: databaseTestTable");
+		t.compare(db.changeTableName("databaseTestTable",null),"==",0,"table cannot be called null");
+		t.compare(db.changeTableName("databaseTestTable","databaseTestTable"),"==",0,"table cannot be renamed to the same name");
+		db.addTable(tab2);
+		t.compare(db.changeTableName("databaseTestTable2","databaseTestTable"),"==",0,"Table with this name already exists in database");
+		t.compare(false,"==",db.tableFileExists(tab.getTableName()),"nonexistentFile does not exist");
 		t.exitSuite();
 		return t;
 	}
 
-	public static Testing componentTest_ReadAndWriteTables(Testing t)	{
-		WhiteBoxTesting.startTesting();
-		t.enterSuite("TableReader-TablerWriter Component Tests: Comparing Table I/O");
-		TableReader tr = new TableReader("text/testTable_toRead.txt");
-		Table tab = tr.getTable();
-		TableWriter tw = new TableWriter(tab,"text/testTable_toWrite.txt");
-		tw.writeTable();
-
-		StringBuffer readTable = new StringBuffer();
-		StringBuffer writeTable = new StringBuffer();
-		Scanner readScanner;
-		Scanner writeScanner;
-		try	{
-			readScanner = new Scanner(new File("text/testTable_toRead.txt"));
-			writeScanner = new Scanner(new File("text/testTable_toWrite.txt"));
-			while(readScanner.hasNext())	{
-				readTable.append(readScanner.nextLine());
-			}
-
-			while(writeScanner.hasNext())	{
-				writeTable.append(writeScanner.nextLine());
-			}
-		t.compare(new String(writeTable),"==",new String(readTable),"Table has been read from file, stored in table, and written to file successfully");
-		} catch(FileNotFoundException e)	{
-			WhiteBoxTesting.catchFatalException(e,"File not found");
-		}
-
-		t.exitSuite();
-		return t;
-
-	}
+	/*To do:
+		create ability to rename files
+		create ability to delete files 
+		remember to validate if database already exists before allowing its creation
+		*/
 }
+

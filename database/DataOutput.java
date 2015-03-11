@@ -69,7 +69,7 @@ public class DataOutput  {
 
 	private static Testing unitTest_printTable(Testing t)	{
 		t.enterSuite("DataOutput Unit Tests");
-		TableReader tr = new TableReader("text/testTable_toRead.txt");
+		TableReader tr = new TableReader("text","testTable_toRead");
 		DataOutput d = new DataOutput();
 		t.compare("val3      ","==",d.formatField("val3",10),"Correct amount of spaces appended to string");
 		t.exitSuite();
