@@ -18,11 +18,20 @@ public class TableReader  {
 	public TableReader(String databaseName, String tableName)	{
 
 		tableFile = openFile(DATABASE_ROOT_DIRECTORY + "/" + databaseName + "/" + tableName + ".txt");
-		lineToParse = new StringToParse(tableFile.nextLine());
+		lineToParse = new StringToParse(getNextLine(tableFile));
 		tableToRead = new Table(createColumns(lineToParse),tableName);
 		populateTable(tableToRead,tableFile);
 		closeFile();
 
+	}
+
+	private String getNextLine(Scanner t)	{
+		try{
+			return t.nextLine();
+		} catch (NoSuchElementException e)	{
+			WhiteBoxTesting.catchException(e,"Tried to read from empty file");
+			return null;
+		}
 	}
 
 	public TableReader()	{
@@ -391,11 +400,15 @@ public class TableReader  {
 		t.compare("col3","==",tab.getColumnName(2),"Column 3 is called col3");
 		t.compare("ERROR","==",tab.getColumnName(3),"Column 4 doesn't exist");
 		int fVal = 1;
-		for(int row = 0; row < tab.getCardinality(); row++)	{
-			for(int field = 0; field < tab.getWidth(); field++, fVal++)	{
-				t.compare("f"+fVal,"==",tab.getFieldValue(row,field),"Field" + fVal + " has value f" + fVal);
-			}
+		for(int field = 0; field < tab.getWidth(); field++, fVal++)	{
+			t.compare("f"+fVal,"==",tab.getFieldValue("f1",field),"Field" + fVal + " has value f" + fVal);
 		}
+		for(int field = 0; field < tab.getWidth(); field++, fVal++)	{
+			t.compare("f"+fVal,"==",tab.getFieldValue("f4",field),"Field" + fVal + " has value f" + fVal);
+		}
+		for(int field = 0; field < tab.getWidth(); field++, fVal++)	{
+			t.compare("f"+fVal,"==",tab.getFieldValue("f7",field),"Field" + fVal + " has value f" + fVal);
+		}		
 		t.exitSuite();
 		return t;
 	}

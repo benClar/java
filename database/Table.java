@@ -8,28 +8,35 @@ import java.util.* ;
 public class Table  {
 
 	String tableName;
-	private ArrayList<Record> rows;
+	private Set<Record> rows;
 	private ArrayList<Column> columnNames;
-	private HashMap<String, Integer> keyMap;
+	private HashMap<String, Record> keyMap;
 	private int keyField;  //! Tracks which column is the primary key
 
 	public Table(Column[] newColumns, String tName)	{
 		columnNames = new ArrayList<Column>();
 		addNewColumnNames(newColumns);
-		rows = new ArrayList<Record>();
+		rows = new TreeSet<Record>();
+		// rows = new ArrayList<Record>();
 		keyField = validateKeyField();
-		keyMap = new HashMap<String, Integer>();
+		keyMap = new HashMap<String, Record>();
 		tableName = tName;
 	}
 
 	public Table(String[] cNames, FieldDataType[] types, FieldDataType[] keys,String tName)	{
 		columnNames = new ArrayList<Column>();
 		addNewColumnNames(cNames, types, keys);
-		rows = new ArrayList<Record>();	
+		// rows = new ArrayList<Record>();	
+		rows = new TreeSet<Record>();
 		keyField = validateKeyField();
-		keyMap = new HashMap<String, Integer>();
+		keyMap = new HashMap<String, Record>();
 		tableName = tName;
 	}
+
+	public Set<Record> getRecordSet()	{
+		return rows;
+	} 
+
 
 	public String getTableName()	{
 		try	{
@@ -132,12 +139,16 @@ public class Table  {
 
 
 	private int extendRows(int extension, FieldDataType[] t)	{
-		try	{
-			if(getCardinality() == 0)	{
-				throw new IllegalArgumentException("Table is empty.");
-			} else if(getWidth() !=  extension + this.getRecord(0).getNumberOfFields())	{
-				throw new IllegalArgumentException("Mistmatch between column headings and rows");
-			}
+		 try	{
+		 	if(getCardinality() == 0)	{
+		 			throw new IllegalArgumentException("Table is empty.");
+		 	} else {
+		 		for( Record rToCheck : rows)	{
+			 		if(getWidth() !=  extension + rToCheck.getNumberOfFields())	{
+				 		throw new IllegalArgumentException("Mistmatch between column headings and rows");
+				 	}
+			 	}
+		 	}
 		} catch(IllegalArgumentException e)	{
 			return WhiteBoxTesting.catchException(e);
 		}
@@ -148,8 +159,8 @@ public class Table  {
 			emptyFields[i] = new Field("", t[i]);
 		}
 
-		for(int i = 0; i < rows.size(); i++ )	{
-			getRecord(i).addNewFields(emptyFields);
+		for(Record recToExtend : rows)	{
+			recToExtend.addNewFields(emptyFields);
 		}
 		return 1;
 	}
@@ -162,18 +173,9 @@ public class Table  {
 		return columnNames.size();
 	}
 
-	public Record getRecord(int r)	{
-		try	{
-			return rows.get(r);
-		} catch (IndexOutOfBoundsException e)	{
-			WhiteBoxTesting.catchException(e,"Row does not exist");
-			return null;
-		}
-	}
-
 	public Record getRecordByKey(String keyToGet)	{
 		try	{
-			return getRecord(keyMap.get(keyToGet));
+			return keyMap.get(keyToGet);
 		} catch (NullPointerException e)	{
 			WhiteBoxTesting.catchException(e,"Key value " + keyToGet + " doesn't exist");
 			return null;
@@ -202,8 +204,9 @@ public class Table  {
 				for(int i = 0; i < newFields.length; i++)	{
 					updateFieldLength(newFields[i],i);
 				}
-				rows.add(new Record(newFields));
-				addKey(newFields[getKey()].getValue(),getCardinality()-1);
+				addKey(newFields[getKey()].getValue(),new Record(newFields,getKey())); //! Add reference to record key index
+				rows.add(getRecordByKey(newFields[getKey()].getValue())); //! Add reference to set via lookup in key index
+				
 				return 1;
 			}
 		} catch(IllegalArgumentException e)	{
@@ -213,10 +216,10 @@ public class Table  {
 		}
 	}
 
-	private void addKey(String key, int value)	{
+	private void addKey(String key, Record recordToAdd)	{
 		try	{
 			if(tableContainsKey(key) == false)	{
-				keyMap.put(key,value);
+				keyMap.put(key,recordToAdd);
 			} else	{
 				throw new Exception("Attempted to add Duplicate Key to table");
 			}
@@ -258,7 +261,7 @@ public class Table  {
 
 	public String getFieldValue(String key, int col)	{
 		try	{
-			return getRecord(keyMap.get(key)).getField(col).getValue();
+			return getRecordByKey(key).getField(col).getValue();
 		} catch(IndexOutOfBoundsException e)	{
 			WhiteBoxTesting.catchException(e,"Field does not exist");
 			return null;
@@ -271,16 +274,6 @@ public class Table  {
 	public String getFieldValueByColumnName(String key, String col)	{
 		return getFieldValue(key,getColumnIndex(col));
 	}
-
-	public String getFieldValue(int row, int col)	{
-		try	{
-			return getRecord(row).getField(col).getValue();
-		} catch(IndexOutOfBoundsException e)	{
-			WhiteBoxTesting.catchException(e,"Field does not exist");
-			return "ERROR";
-		}
-	}
-
 
 	public int changeFieldValue(String key, String colName, String newValue)	{
 		int mappedValue;
@@ -295,8 +288,8 @@ public class Table  {
 	 	return 1;
 	}
 
-	private int removeKeyMapping(String keyToRemove)	{
-		int mapValue = keyMap.get(keyToRemove);
+	private Record removeKeyMapping(String keyToRemove)	{
+		Record mapValue = keyMap.get(keyToRemove);
 		keyMap.remove(keyToRemove);
 		return mapValue;
 	}
@@ -324,11 +317,13 @@ public class Table  {
 		return 1;
 	}
 
-	private int deleteRow(int r)	{	
+	private int deleteRow(Record r)	{	
 		try	{	
 		rows.remove(r);
 		} catch(IndexOutOfBoundsException e)	{
 			return WhiteBoxTesting.catchException(e,"Row does not exist");
+		}	catch (NullPointerException e)	{
+			return WhiteBoxTesting.catchException(e,"Attempt to delete does not exist");
 		}
 		return 1;
 	}
@@ -350,6 +345,7 @@ public class Table  {
 		Table.unitTest_AlteringTable(t);
 		Table.unitTest_AddingRows(t);
 		Table.unitTest_hashMap(t);
+		Table.unitTest_treeSet(t);
 		return t;
 	}
 
@@ -440,11 +436,11 @@ public class Table  {
 		tab.addRecord(newRecord);
 
 		int currCard = tab.getCardinality();
-		t.compare(1,"==",tab.deleteRow(0),"Removed First Row");
+		t.compare(1,"==",tab.deleteRow(tab.getRecordByKey("field0")),"Removed First Row");
 		t.compare(tab.getCardinality(),"==",currCard - 1,"Table cardinality has decreased by one");
-		t.compare("field3","==",tab.getFieldValue(0,0),"First field in first record is field3");
-		t.compare("field4","==",tab.getFieldValue(0,1),"Second field in first record is field4");
-		t.compare("field5","==",tab.getFieldValue(0,2),"Third field in first record is field5");
+		t.compare("field3","==",tab.getFieldValue("field3",0),"First field in first record is field3");
+		t.compare("field4","==",tab.getFieldValue("field3",1),"Second field in first record is field4");
+		t.compare("field5","==",tab.getFieldValue("field3",2),"Third field in first record is field5");
 		t.exitSuite();
 		return t;
 	}
@@ -495,13 +491,15 @@ public class Table  {
 		t.compare(0,"==",tab.extendRows(2,dtype_2),"invalid attempt to extend rows due to column row length mismatch");
 		tab.addNewColumnNames(new String[]{"col5","col6"},dtype_3);
 		t.compare(1,"==",tab.extendRows(2,dtype_3),"Table columns successfully extended");
-		t.compare(6,"==",tab.getRecord(0).getNumberOfFields(),"row 0 now has 6 fields");
+		t.compare(6,"==",tab.getRecordByKey("field0").getNumberOfFields(),"row 0 now has 6 fields");
 		t.compare(2,"==",tab.getColumnIndex("col3"),"Col3 is name of third column");
 		t.compare(null,"==",tab.getColumnIndex("test"),"test is not column name in table");
 		t.compare(0,"==",tab.changeColumnName("col3",null),"Column name cannot be null");
 		t.compare(1,"==",tab.changeColumnName("col3","COL3"),"Col 3 name changed");
 		t.compare("COL3","==",tab.getColumnName(2),"The third column is now COL3");
-		t.compare(0,"==",tab.deleteRow(10),"Invalid attempt to delete row that does not exist");
+		
+		System.out.println(tab.getRecordByKey("field10"));
+		t.compare(0,"==",tab.deleteRow(tab.getRecordByKey("field10")),"Invalid attempt to delete row that does not exist");
 		tab.changeFieldValue("field0","col1","field1");
 		t.compare("field1","==",tab.getRecordByKey("field1").getField(0).getValue(),"Field0 key has been updated to field1");
 		tab.changeFieldValue("field1","col1","field2");
@@ -513,6 +511,45 @@ public class Table  {
 		t.compare(0,"==",tab.setTableName(null),"Invalid Table name: null");
 		t.compare(1,"==",tab.setTableName("renamedTestTable"),"Valid Table name: renamedTestTable");
 		t.compare("renamedTestTable","==",tab.getTableName(),"Table name now renamedTestTable");
+		t.exitSuite();
+		return t;
+	}
+
+	public static Testing unitTest_treeSet(Testing t)	{
+		WhiteBoxTesting.startTesting();
+		t.enterSuite("Table Unit Tests: Tree Set record structure");
+		String[] cNames = new String[]{"ID","Vehicle","Manufacturer"};
+		Field[] f = new Field[3];
+		FieldDataType[] dtype = new FieldDataType[3];
+		FieldDataType[] ktype = new FieldDataType[3];
+
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+			ktype[i] = FieldDataType.NONKEY;
+		}
+		ktype[0] = FieldDataType.PKEY;
+
+		Table tab=new Table(cNames,dtype,ktype,"testTable");
+		t.compare("ID","==",tab.getColumnName(0),"Column 1 named ID");
+		f[0] = new Field("1",FieldDataType.STRING);
+		f[1] = new Field("Car",FieldDataType.STRING);
+		f[2] = new Field("Honda",FieldDataType.STRING);
+		t.compare(1,"==",tab.addRecord(f),"Record successfully added");
+		t.compare(0,"==",tab.addRecord(f),"Duplicate Record not added");
+		f[0] = new Field("3",FieldDataType.STRING);
+		f[1] = new Field("Bus",FieldDataType.STRING);
+		f[2] = new Field("Ford",FieldDataType.STRING);
+		t.compare(1,"==",tab.addRecord(f),"Record successfully added");
+		t.compare(2,"==",tab.getCardinality(),"Table Cardinality is 2");
+		f[0] = new Field("2",FieldDataType.STRING);
+		f[1] = new Field("Bike",FieldDataType.STRING);
+		f[2] = new Field("Suzuki",FieldDataType.STRING);
+		t.compare(1,"==",tab.addRecord(f),"Record successfully added");
+		Integer key = 1;
+		for(Record r : tab.rows)	{
+			t.compare(key.toString(),"==",r.getField(0).getValue(),"TreeSet sorting in ascending order on primary key " + key + ":" + r.getField(0).getValue());
+			key++;
+		}
 		t.exitSuite();
 		return t;
 	}

@@ -48,9 +48,12 @@ public class DBMS  {
 		TableWriter.unitTest(t);
 		DataOutput.unitTest(t);
 		Database.unitTest(t);
+		RelationStack.unitTest(t);
+		StringToParse.unitTest(t);
 		DBMS.componentTests_tableRecordField(t);
 		DBMS.componentTest_ReadAndWriteTables(t);
 		DBMS.componentTests_keyTesting(t);
+	
 		return t;
 	}
 
@@ -97,13 +100,16 @@ public class DBMS  {
 			recordTooLong[i]=new Field("field" + (i + 6),FieldDataType.STRING);
 		}
 		t.compare(0,"==",tab.addRecord(recordTooLong),"Populated table invalid records");
-		t.compare(3,"==",tab.getRecord(0).getNumberOfFields(),"row 0 has 3 fields");
-
+		// DataOutput dio = new DataOutput();
+		// dio.printTable(tab);
+		t.compare(3,"==",tab.getRecordByKey("field1").getNumberOfFields(),"row 0 has 3 fields");
 		fieldCount = 0;
-		for(int r = 0; r < tab.getCardinality(); r++)	{
+		Set<Record> copyOfSet = tab.getRecordSet();
+
+		for(Record rToTest : copyOfSet)	{
 			for(int c = 0; c < tab.getWidth(); c++)	{
 				fieldCount++;
-				t.compare("field"+fieldCount,"==",tab.getFieldValue(r,c),"Field value is " + "field"+fieldCount);
+				t.compare("field"+fieldCount,"==",tab.getFieldValue(rToTest.getPrimaryKeyValue(),c),"Field value is " + "field"+fieldCount);
 			}
 		}
 		t.exitSuite();
@@ -199,9 +205,9 @@ public class DBMS  {
 		int currCard = tab.getCardinality();
 		t.compare(1,"==",tab.deleteRowByKeyValue("field0"),"Removed First Row");
 		t.compare(tab.getCardinality(),"==",currCard - 1,"Table cardinality has decreased by one");
-		t.compare("field3","==",tab.getFieldValue(0,0),"First field in first record is field3");
-		t.compare("field4","==",tab.getFieldValue(0,1),"Second field in first record is field4");
-		t.compare("field5","==",tab.getFieldValue(0,2),"Third field in first record is field5");
+		t.compare("field3","==",tab.getFieldValue("field3",0),"First field in first record is field3");
+		t.compare("field4","==",tab.getFieldValue("field3",1),"Second field in first record is field4");
+		t.compare("field5","==",tab.getFieldValue("field3",2),"Third field in first record is field5");
 		t.exitSuite();
 		return t;
 	}

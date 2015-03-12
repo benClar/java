@@ -1,6 +1,7 @@
 import com.bclarke.testing.*;
 import com.bclarke.general.*;
 import java.io.*;
+import java.util.* ;
 
 public class TableWriter  {
 
@@ -29,6 +30,7 @@ public class TableWriter  {
 
 	public void writeTable(Table tab, String databaseName)	{
 		tableToWrite = tab;
+		Set<Record> copyOfSet = tab.getRecordSet();
 		try	{
 			saveTable = new BufferedWriter(new FileWriter(DATABASE_ROOT_DIRECTORY + "/" + databaseName + "/" + tab.getTableName() + ".txt"));
 		} catch (IOException e)	{
@@ -36,8 +38,10 @@ public class TableWriter  {
 		}
 
 		writeString(formatColumnData(tableToWrite));
-		for(int i = 0; i < tableToWrite.getCardinality(); i++)	{
-			writeString(formatRow(tableToWrite.getRecord(i)));
+		for(Record recordToWrite : copyOfSet)	{
+			for(int i = 0; i < tableToWrite.getCardinality(); i++)	{
+				writeString(formatRow(recordToWrite));
+			}
 		}
 		closeFile();
 	}
@@ -75,8 +79,10 @@ public class TableWriter  {
 
 	public void writeTable()	{
 		writeString(formatColumnData(tableToWrite));
-		for(int i = 0; i < tableToWrite.getCardinality(); i++)	{
-			writeString(formatRow(tableToWrite.getRecord(i)));
+		Set<Record> copyOfSet = tableToWrite.getRecordSet();
+
+		for(Record recordToWrite : copyOfSet)	{
+			writeString(formatRow(recordToWrite));
 		}
 		closeFile();
 	}
@@ -171,14 +177,18 @@ public class TableWriter  {
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("TableWriter Unit Tests: Writing to file");
 		TableReader tr = new TableReader("text", "testTable_writing");
+
+
 		Table tab = tr.getTable();
 		TableWriter tw = new TableWriter(tab, "text");
 		t.compare("c\\,ol1","==",tw.escapeSpecialCharacters(tab.getColumn(0).getColumnName()),"Transformed Column name is c\\,ol1");
 		t.compare("{type:string}","==",tw.formatMetaDataType(tab.getColumn(0)),"Metadata format for this column is {type:string}");
 		t.compare("c\\,ol1[{type:string}{key:primaryKey}]","==",tw.transformColumn(tab.getColumn(0)),"Column data to be written c\\,ol1[{type:string}{key:primaryKey}]");
 		t.compare("c\\,ol1[{type:string}{key:primaryKey}],c\\[o\\]l2[{type:string}],col3[{type:string}]","==",tw.formatColumnData(tab),"Column data to write is c\\,ol1[{type:string}{key:primaryKey}],c\\[o\\]l2[{type:string}],col3[{type:string}]");
-		t.compare("f1,f2,f3","==",tw.formatRow(tab.getRecord(0)),"first row is formated to string f1,f2,f3");
-		t.compare("f\\,7,f\\[8,f\\]9\\,","==",tw.formatRow(tab.getRecord(2)),"first row is formated to string f\\,7,f\\[8,f\\]9\\,");
+		t.compare("f1,f2,f3","==",tw.formatRow(tab.getRecordByKey("f1")),"first row is formated to string f1,f2,f3");
+		t.compare("f\\,7,f\\[8,f\\]9\\,","==",tw.formatRow(tab.getRecordByKey("f,7")),"first row is formated to string f\\,7,f\\[8,f\\]9\\,");
+
+
 		tw.writeTable();
 		tw.closeFile();
 		t.exitSuite();

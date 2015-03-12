@@ -19,6 +19,10 @@ public class Field  {
 		value = newValue;
 	}
 
+	public String getFieldValue()	{
+		return (value + "," + type);
+	}
+
 /*----------Testing----------*/
 
 	public static void main( String[] args )    {

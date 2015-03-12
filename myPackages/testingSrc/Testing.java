@@ -12,7 +12,6 @@ public class Testing	{
 
 	private final String EQUALS = "==";	//!Equality operator
 	private final String NOT_EQUALS = "!="; //!Inequality Operator
-
 	TestingSuite currentSuite;
 
 	public Testing()	{

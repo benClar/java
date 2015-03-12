@@ -1,4 +1,4 @@
 c\,ol1[{type:string}],c\[o\]l2[{type:string}{key:primaryKey}],col3[{type:string}],col_4[{type:string}]
-r\,e\\d,blue,\[y\]\[e\\llow,green
 cat,d\,\,\,o\[g,mouse,bear
+r\,e\\d,blue,\[y\]\[e\\llow,green
 test,th\[is,table's,accuracy

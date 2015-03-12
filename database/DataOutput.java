@@ -10,6 +10,13 @@ public class DataOutput  {
 		charSize = null;
 	}
 
+	public void printTableName(Table tableToPrint)	{
+		try	{
+			System.out.println(table.getTableName());
+		} catch (NullPointerException e)	{
+			WhiteBoxTesting.catchException(e,"Tried to print null table");
+		}
+	}
 
 	public void printTable(Table tableToPrint)	{
 		printTableColumnHeaders(tableToPrint);
@@ -26,12 +33,14 @@ public class DataOutput  {
 
 	private void printTableRecords(Table tableToPrint)	{
 		StringBuffer recordToPrint = new StringBuffer();
-		for(int row = 0; row < tableToPrint.getCardinality(); row++)	{
-			for(int field = 0; field < tableToPrint.getRecord(row).getNumberOfFields(); field++)	{
-				System.out.printf("%s ",formatField(tableToPrint.getRecord(row).getField(field).getValue(),tableToPrint.getColumn(field).getLongestFieldSize()));
+		Set<Record> copyOfSet = tableToPrint.getRecordSet();
+
+		for(Record rToPrint : copyOfSet)	{
+			for(int field = 0; field < rToPrint.getNumberOfFields(); field++)	{
+				System.out.printf("%s ",rToPrint.getField(field).getValue(),tableToPrint.getColumn(field).getLongestFieldSize());
 			}
-			System.out.printf("\n");
-		}
+			System.out.printf("\n");	
+		}	
 	}
 
 	private String formatField(String fieldToPrint, int longest)	{
