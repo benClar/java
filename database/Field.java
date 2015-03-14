@@ -23,6 +23,13 @@ public class Field  {
 		return (value + "," + type);
 	}
 
+	public Field copyOf()	{
+		StringBuffer copyValue = new StringBuffer();
+		copyValue.append(value);
+
+		return new Field(new String(copyValue), type);
+	}
+
 /*----------Testing----------*/
 
 	public static void main( String[] args )    {

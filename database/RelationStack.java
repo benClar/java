@@ -1,6 +1,7 @@
 import com.bclarke.testing.*;
 import com.bclarke.general.*;
 import java.util.Stack;
+import java.util.*;
 public class RelationStack  {
 
 	private Stack<Table> relStack;
@@ -14,9 +15,10 @@ public class RelationStack  {
 			if( rel == null)	{
 				throw new Exception();
 			}
-			return relStack.push(rel);
+			relStack.push(rel);
+			return rel;
 		} catch (Exception e)	{
-			WhiteBoxTesting.catchFatalException(e,"Null table placed on relation stack");
+			WhiteBoxTesting.catchException(e,"Table Doesn't Exist");
 			return null;
 		}
 	}
@@ -35,8 +37,14 @@ public class RelationStack  {
 	}
 
 
-	public Table peek()	{
-		return relStack.peek();
+	public Table peek()	{		
+		try{
+			return relStack.peek();			
+		} catch (EmptyStackException e)	{
+			WhiteBoxTesting.catchException(e,"No relation in stack");
+			return null;
+		}
+
 	}
 
 /*----------Testing----------*/

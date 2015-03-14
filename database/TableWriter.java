@@ -14,6 +14,7 @@ public class TableWriter  {
 	private final char END_META = ']';
 
 	private final String DATABASE_ROOT_DIRECTORY = "resources";
+	
 	public TableWriter(Table tab, String databaseName)	{
 		tableToWrite = tab;
 		try	{
@@ -117,6 +118,7 @@ public class TableWriter  {
 			return null;
 		}
 	}
+
 
 	private String escapeSpecialCharacters(String s)	{
 		StringBuffer sb = new StringBuffer();

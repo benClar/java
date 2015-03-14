@@ -18,6 +18,7 @@ public class StringToParse  {
 
 	public void addLine(String l)	{
 		line = l;
+		charToParse = 0;
 	}
 	public String getString()	{
 		return line;
@@ -29,7 +30,7 @@ public class StringToParse  {
 
 	public String getNextTokenBy(char delimiter)	{
 		StringBuffer token = new StringBuffer();
-		while(getCurrentChar() != delimiter && hasNext())	{
+		while(hasNext() && getCurrentChar() != delimiter )	{
 			token.append(getCurrentChar());
 			next();
 		}
@@ -50,14 +51,27 @@ public class StringToParse  {
 		return l;
 	}
 
+	public int parseCurrentChar(char expected)	{
+			if(getCurrentChar() != expected)	{
+				throw new SyntaxErrorException("expected" + expected);
+			}
+			next();
+		return 1;
+	}
+
 	public char getCurrentChar()	{
 		try	{
 			return line.charAt(charToParse);
 		} catch	(IndexOutOfBoundsException e)	{
 			WhiteBoxTesting.catchFatalException(e,"No more characters in line");
-			System.out.println(getCurrentPosition());
 			return '\0';
 		}
+	}
+
+	public char getNext()	{
+		char curr = getCurrentChar();
+		next();
+		return curr;
 	}
 
 	public int getCurrentPosition()	{
@@ -74,9 +88,13 @@ public class StringToParse  {
 	}
 
 	public void next()	{
-		if(hasNext())	{
+		if(charToParse < length())	{
 			charToParse++;
 		}
+	}
+
+	public void stepBack(int steps)	{
+		charToParse = charToParse - steps;
 	}
 
 	public boolean hasNext()	{

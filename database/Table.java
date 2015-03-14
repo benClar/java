@@ -12,24 +12,62 @@ public class Table  {
 	private ArrayList<Column> columnNames;
 	private HashMap<String, Record> keyMap;
 	private int keyField;  //! Tracks which column is the primary key
+	private boolean hasKey;
 
 	public Table(Column[] newColumns, String tName)	{
 		columnNames = new ArrayList<Column>();
 		addNewColumnNames(newColumns);
 		rows = new TreeSet<Record>();
 		// rows = new ArrayList<Record>();
-		keyField = validateKeyField();
-		keyMap = new HashMap<String, Record>();
+		try{
+			keyField = validateKeyField();
+		}catch(NullPointerException e)	{
+
+		}
+		if(hasKey)	{
+			keyMap = new HashMap<String, Record>();
+		} else {
+			keyMap = null;
+		}
+		tableName = tName;
+	}
+
+	public Table(Column[] newColumns, Record[] newRecords, String tName){
+
+
+		columnNames = new ArrayList<Column>();
+		addNewColumnNames(newColumns);
+		rows = new TreeSet<Record>();
+
+		try{
+			keyField = validateKeyField();
+		}catch(NullPointerException e)	{
+			
+		}
+		if(hasKey)	{
+			keyMap = new HashMap<String, Record>();
+		} else {
+			keyMap = null;
+		}
+		for(Record r : newRecords)	{
+			addRecord(r);
+		}
 		tableName = tName;
 	}
 
 	public Table(String[] cNames, FieldDataType[] types, FieldDataType[] keys,String tName)	{
+
 		columnNames = new ArrayList<Column>();
 		addNewColumnNames(cNames, types, keys);
+
 		// rows = new ArrayList<Record>();	
 		rows = new TreeSet<Record>();
 		keyField = validateKeyField();
+		if(hasKey)	{
 		keyMap = new HashMap<String, Record>();
+		} else	{
+			keyMap = null;
+		}
 		tableName = tName;
 	}
 
@@ -67,34 +105,29 @@ public class Table  {
 	public Column getColumn(int targetColumn)	{
 		return columnNames.get(targetColumn);
 	}
-	public int getKey()	{
+
+	public Integer getKey()	{
+		if(hasKey)	{
 		return keyField;
+		} else	{
+			return null;
+		}
 	}
 
 	private void setKey(int newKey)	{
 		keyField = newKey;
 	}
+
 	public int validateKeyField()	{
 		setKey(0);
-		boolean keyDetected = false;
-		try{
-			for(int i = 0; i < getWidth(); i++)	{
-				if(getColumn(i).getKeyType() == FieldDataType.PKEY)	{
-					if(keyDetected == false)	{
-						setKey(i);
-						keyDetected = true;
-					} else	{
-						throw new Exception("Table may only have one primary key");
-					}
+		hasKey = false;
+		for(int i = 0; i < getWidth(); i++)	{
+			if(getColumn(i).getKeyType() == FieldDataType.PKEY)	{
+				if(hasKey == false)	{
+					setKey(i);
+					hasKey = true;
 				}
 			}
-
-			if(keyDetected == false)	{
-				throw new Exception("Key Field not found");
-			}
-
-		} catch(Exception e)	{
-			return WhiteBoxTesting.catchException(e);
 		}
 		return getKey();
 	}
@@ -136,7 +169,6 @@ public class Table  {
 	private void addNewColumnNames(String cName,FieldDataType t,FieldDataType k)	{
 			columnNames.add(new Column(cName,t,k));
 	}
-
 
 	private int extendRows(int extension, FieldDataType[] t)	{
 		 try	{
@@ -195,17 +227,20 @@ public class Table  {
 	 */
 	public int addRecord(Field[] newFields)	{
 		try	{
-			if(tableContainsKey(newFields[getKey()]) == true)	{
+			if(hasKey && tableContainsKey(newFields[getKey()]) == true)	{
 				throw new IllegalArgumentException("Key Field not unique");
 			}
+
 			if(newFields.length != getWidth())	{
 				throw new IllegalArgumentException("Number of values supplied doesn't match columns in table");
 			} else	{
 				for(int i = 0; i < newFields.length; i++)	{
 					updateFieldLength(newFields[i],i);
 				}
+			if(hasKey)	{
 				addKey(newFields[getKey()].getValue(),new Record(newFields,getKey())); //! Add reference to record key index
-				rows.add(getRecordByKey(newFields[getKey()].getValue())); //! Add reference to set via lookup in key index
+			}
+			rows.add(getRecordByKey(newFields[getKey()].getValue())); //! Add reference to set via lookup in key index
 				
 				return 1;
 			}
@@ -215,6 +250,48 @@ public class Table  {
 			return WhiteBoxTesting.catchFatalException(e,"Failed to add record to table ");
 		}
 	}
+
+	/*
+	 *Adding completed Record to database.
+	 */
+	public void addRecord(Record r)	{
+		try{
+			if(hasKey && tableContainsKey(r.getField(getKey())) == true)	{
+				throw new IllegalArgumentException("Key Field not unique");
+			}
+
+			if(hasKey)	{
+				addKey(r.getField(getKey()).getValue(),r);
+			}
+			for(int i = 0; i < r.getNumberOfFields(); i++)	{
+				updateFieldLength(r.getField(i),i);
+			}
+			rows.add(r);
+		} catch (IllegalArgumentException e)	{
+			WhiteBoxTesting.catchException(e,"Tried to add non unique key");
+		}	
+	}
+
+	public Table getMatchingRecords(String colName, String searchTerm)	{
+		ArrayList<Record> matchingRecords = new ArrayList<Record>();
+		Column[] matchingColumns = new Column[columnNames.size()];
+		for(Record r : rows)	{
+			if (r.getField(getColumnIndex(colName)).getValue().equals(searchTerm))	{
+				matchingRecords.add(r.copyOf());
+			}	
+		}
+
+		int i = 0;
+		for( Column c: columnNames)	{
+			matchingColumns[i] = c.copyOf();
+			i++;
+		}
+
+		return (new Table(matchingColumns,
+			matchingRecords.toArray(new Record[matchingRecords.size()]),
+			this.toString()));
+	}
+
 
 	private void addKey(String key, Record recordToAdd)	{
 		try	{
@@ -228,9 +305,37 @@ public class Table  {
 		}
 	}
 
+	public String toString()	{
+		String tableString = new String("");
+		for(int i = 0; i < columnNames.size(); i++)	{
+			tableString += getColumnName(i);
+			if(i != columnNames.size() -1)	{
+				tableString += ",";
+			}
+		}
+		return tableString;
+	}
+
+	public String contentsToString()	{
+		String tableContentString = new String();
+		for(Record r : rows)	{
+			for(int f = 0; f < r.getNumberOfFields(); f++)	{
+				if( f != r.getNumberOfFields() - 1)	{
+					tableContentString += r.getField(f).getValue() + ",";
+				} else	{
+					tableContentString += r.getField(f).getValue();
+				}	
+			}
+		}
+
+		return tableContentString;
+	}
+
 	private int updateFieldLength(Field newField, int col)	{
+		// System.out.println("new length" + newField.getValue().length() + "curr length" + columnNames.get(col).getLongestFieldSize());
 		if(newField.getValue().length() > columnNames.get(col).getLongestFieldSize())	{
 			columnNames.get(col).setLongestFieldSize(newField.getValue().length());
+			// System.out.println("LONGER : UPDATED : " + columnNames.get(col).getLongestFieldSize());
 			return columnNames.get(col).getLongestFieldSize();
 		}
 		return 0;
@@ -243,6 +348,45 @@ public class Table  {
 			WhiteBoxTesting.catchException(e,"Column does not exist");
 			return "ERROR";
 		}
+	}
+
+	//! Could use refactoring.
+	public Table pullColumns(String[] columnsToPull)	{
+		Column[] newCols = new Column[columnsToPull.length];
+		ArrayList<Record> newRecords = new ArrayList<Record>();
+		Field[] newFields = new Field[columnsToPull.length];
+		int newKey = 0;
+		boolean newHasKey = false;
+		String newTableName = new String("");
+		// try {
+			//!Constructing Column Structures
+			for(int c = 0; c < columnsToPull.length; c++)	{
+				if(getColumnIndex(columnsToPull[c]) == getKey())	{
+					newKey = c;
+					newHasKey = true;
+				}
+				newCols[c] = getColumn(getColumnIndex(columnsToPull[c])).copyOf();
+				//constructing new table name from columns
+				if(c == columnsToPull.length - 1)	{
+					newTableName += columnsToPull[c];
+				} else	{
+					newTableName += columnsToPull[c] + ",";
+				}
+			}
+			//Getting all records
+			for(Record r : rows)	{
+				for(int i = 0; i < columnsToPull.length; i++)	{
+					newFields[i] = r.getField(getColumnIndex(columnsToPull[i])).copyOf();
+				}
+				if(!newHasKey)	{
+					newRecords.add(new Record(newFields));
+				} else	{
+					newRecords.add(new Record(newFields,newKey));
+				}
+			}
+			return (new Table(newCols, 
+				newRecords.toArray(new Record[newRecords.size()]),
+				newTableName));
 	}
 
 	public Integer getColumnIndex(String colName)	{
@@ -275,18 +419,22 @@ public class Table  {
 		return getFieldValue(key,getColumnIndex(col));
 	}
 
-	public int changeFieldValue(String key, String colName, String newValue)	{
+	public int changeFieldValue(Record rToChange, String colName, String newValue)	{
 		int mappedValue;
 		try	{
-	 		if(getColumnIndex(colName) == keyField)	{
-	 			 addKey(newValue,removeKeyMapping(key));
+	 		if(hasKey && getColumnIndex(colName) == keyField)	{
+	 			 addKey(newValue,removeKeyMapping(rToChange.getField(getColumnIndex(colName)).getValue()));
+	 			 getRecordByKey(newValue).changeField(newValue,getColumnIndex(colName));
+	 		} else	{
+	 			rToChange.changeField(newValue,getColumnIndex(colName));
 	 		}
-	 		getRecordByKey(newValue).changeField(newValue,getColumnIndex(colName));
+	 		
 	 	} catch (NullPointerException e)	{
 	 		return WhiteBoxTesting.catchException(e,"Field Does not exist");
 	 	}
 	 	return 1;
 	}
+
 
 	private Record removeKeyMapping(String keyToRemove)	{
 		Record mapValue = keyMap.get(keyToRemove);
@@ -346,6 +494,7 @@ public class Table  {
 		Table.unitTest_AddingRows(t);
 		Table.unitTest_hashMap(t);
 		Table.unitTest_treeSet(t);
+		Table.unitTest_searchingTable(t);
 		return t;
 	}
 
@@ -411,7 +560,6 @@ public class Table  {
 	public static Testing unitTest_DeletingRows(Testing t)	{
 		WhiteBoxTesting.startTesting();
 		t.enterSuite("Table Unit Tests: Deleting rows from table");
-
 		String[] cNames = new String[]{"col1","col2","col3"};
 		FieldDataType[] dtype = new FieldDataType[3];
 		FieldDataType[] ktype = new FieldDataType[3];
@@ -419,8 +567,11 @@ public class Table  {
 			dtype[i] = FieldDataType.STRING;
 			ktype[i] = FieldDataType.NONKEY;
 		}
+
 		ktype[0] = FieldDataType.PKEY;
+
 		Table tab=new Table(cNames,dtype,ktype,"testTable");
+
 		Field[] newRecord = new Field[3];
 
 		for(int i = 0, c = tab.getNumberOfFields(); i < newRecord.length; i++, c++)	{
@@ -498,13 +649,12 @@ public class Table  {
 		t.compare(1,"==",tab.changeColumnName("col3","COL3"),"Col 3 name changed");
 		t.compare("COL3","==",tab.getColumnName(2),"The third column is now COL3");
 		
-		System.out.println(tab.getRecordByKey("field10"));
 		t.compare(0,"==",tab.deleteRow(tab.getRecordByKey("field10")),"Invalid attempt to delete row that does not exist");
-		tab.changeFieldValue("field0","col1","field1");
+		tab.changeFieldValue(tab.getRecordByKey("field0"),"col1","field1");
 		t.compare("field1","==",tab.getRecordByKey("field1").getField(0).getValue(),"Field0 key has been updated to field1");
-		tab.changeFieldValue("field1","col1","field2");
+		tab.changeFieldValue(tab.getRecordByKey("field1"),"col1","field2");
 		t.compare("field2","==",tab.getRecordByKey("field2").getField(0).getValue(),"Field1 key has been updated to field2");
-		tab.changeFieldValue("field2","col2","field2");
+		tab.changeFieldValue(tab.getRecordByKey("field2"),"col2","field2");
 		t.compare("field2","==",tab.getRecordByKey("field2").getField(1).getValue(),"Field1 non-key has been updated to field2");
 		t.compare("testTable","==",tab.getTableName(),"Table name is testtable");
 		t.compare(0,"==",tab.setTableName(""),"Invalid Table name: Empty");
@@ -550,9 +700,99 @@ public class Table  {
 			t.compare(key.toString(),"==",r.getField(0).getValue(),"TreeSet sorting in ascending order on primary key " + key + ":" + r.getField(0).getValue());
 			key++;
 		}
+		t.compare("ID,Vehicle,Manufacturer","==",tab.toString()," table string value is" +  tab.toString());
 		t.exitSuite();
 		return t;
 	}
 
-}
+	public static Testing unitTest_searchingTable(Testing t)	{
+		WhiteBoxTesting.startTesting();
+		t.enterSuite("Table Unit Tests: Searching Tables");
+		String[] cNames = new String[]{"ID","Vehicle","Manufacturer"};
+		Field[] f = new Field[3];
+		FieldDataType[] dtype = new FieldDataType[3];
+		FieldDataType[] ktype = new FieldDataType[3];
 
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+			ktype[i] = FieldDataType.NONKEY;
+		}
+		ktype[0] = FieldDataType.PKEY;
+
+		Table tab=new Table(cNames,dtype,ktype,"testTable");
+		f[0] = new Field("1",FieldDataType.STRING);
+		f[1] = new Field("Car",FieldDataType.STRING);
+		f[2] = new Field("Honda",FieldDataType.STRING);
+		tab.addRecord(f);
+		f[0] = new Field("3",FieldDataType.STRING);
+		f[1] = new Field("Bus",FieldDataType.STRING);
+		f[2] = new Field("Ford",FieldDataType.STRING);
+		tab.addRecord(f);
+		f[0] = new Field("2",FieldDataType.STRING);
+		f[1] = new Field("Bike",FieldDataType.STRING);
+		f[2] = new Field("Suzuki",FieldDataType.STRING);
+		tab.addRecord(f);
+		f[0] = new Field("4",FieldDataType.STRING);
+		f[1] = new Field("Van",FieldDataType.STRING);
+		f[2] = new Field("Suzuki",FieldDataType.STRING);
+		tab.addRecord(f);
+		DataOutput DO = new DataOutput();
+		Table searchResults = tab.getMatchingRecords("Manufacturer","Suzuki");
+		String[] colsToPull = new String[]{"Vehicle","Manufacturer"};
+		Table columnPull = tab.pullColumns(colsToPull);
+		// DO.printTable(tab);
+		// DO.printTable(searchResults);
+		// DO.printTable(columnPull);
+		t.compare(2,"==",searchResults.getCardinality(),"2 fields in resultant table");
+		t.compare("Van","==",searchResults.getRecordByKey("4").getField(1).getValue(),"Results table contains Van");
+		t.compare("Bike","==",searchResults.getRecordByKey("2").getField(1).getValue(),"Results table contains Van");
+		searchResults.changeFieldValue(searchResults.getRecordByKey("4"),"Vehicle","Plane");
+		t.compare("Plane","==",searchResults.getRecordByKey("4").getField(1).getValue(),"Van field changed to" + searchResults.getRecordByKey("4").getField(1).getValue());
+		t.compare("Van","==",tab.getRecordByKey("4").getField(1).getValue(),"Record Van unchanged in previous table" + tab.getRecordByKey("4").getField(1).getValue());
+		t.compare(2,"==",columnPull.getWidth(),"Pulled two columns to make this table");
+		t.compare(4,"==",columnPull.getCardinality(),"All rows still present");
+		t.compare("Van,Suzuki","==",columnPull.getMatchingRecords("Vehicle","Van").contentsToString(),"Contents of table is Suzuki,van after a search and column pull");
+		f[0] = new Field("5",FieldDataType.STRING);
+		f[1] = new Field("Bus",FieldDataType.STRING);
+		f[2] = new Field("Ford",FieldDataType.STRING);
+		tab.addRecord(f);
+
+		t.compare(5,"==",tab.getCardinality(),"New Unique Row added to table");
+		t.compare(4,"==",tab.pullColumns(colsToPull).getCardinality(),"Only four unique rows in table after column pull");
+		colsToPull = new String[]{"Manufacturer","Vehicle"};
+		t.compare(4,"==",tab.pullColumns(colsToPull).getCardinality(),"Only four unique rows in table after column pull");
+		t.exitSuite();
+		return t;
+	}
+
+	public static Table spawnTestDB(String name)	{
+		String[] cNames = new String[]{"ID","Vehicle","Manufacturer"};
+		Field[] f = new Field[3];
+		FieldDataType[] dtype = new FieldDataType[3];
+		FieldDataType[] ktype = new FieldDataType[3];
+
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+			ktype[i] = FieldDataType.NONKEY;
+		}
+		ktype[0] = FieldDataType.PKEY;
+
+		Table tab=new Table(cNames,dtype,ktype,name);
+		f[0] = new Field("1",FieldDataType.STRING);
+		f[1] = new Field("Car",FieldDataType.STRING);
+		f[2] = new Field("Honda",FieldDataType.STRING);
+		tab.addRecord(f);
+		f[0] = new Field("3",FieldDataType.STRING);
+		f[1] = new Field("Bus",FieldDataType.STRING);
+		f[2] = new Field("Ford",FieldDataType.STRING);
+		tab.addRecord(f);
+		f[0] = new Field("2",FieldDataType.STRING);
+		f[1] = new Field("Bike",FieldDataType.STRING);
+		f[2] = new Field("Suzuki",FieldDataType.STRING);
+		tab.addRecord(f);
+		f[0] = new Field("4",FieldDataType.STRING);
+		f[1] = new Field("Van",FieldDataType.STRING);
+		f[2] = new Field("Suzuki",FieldDataType.STRING);	
+		return tab;	
+	}
+}

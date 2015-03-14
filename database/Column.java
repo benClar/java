@@ -22,6 +22,13 @@ public class Column {
 		keyStatus = FieldDataType.NONKEY;
 	}
 
+	public Column copyOf()	{
+		StringBuffer copyName = new StringBuffer();
+		copyName.append(columnName);
+		return new Column(new String(copyName),columnType,keyStatus);
+
+	}
+
 	public String validateColumnName(String cName)	{
 		if(cName != "")	{
 			return cName;

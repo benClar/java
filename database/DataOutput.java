@@ -12,7 +12,7 @@ public class DataOutput  {
 
 	public void printTableName(Table tableToPrint)	{
 		try	{
-			System.out.println(table.getTableName());
+			System.out.println(tableToPrint.getTableName());
 		} catch (NullPointerException e)	{
 			WhiteBoxTesting.catchException(e,"Tried to print null table");
 		}
@@ -21,7 +21,6 @@ public class DataOutput  {
 	public void printTable(Table tableToPrint)	{
 		printTableColumnHeaders(tableToPrint);
 		printTableRecords(tableToPrint);
-
 	}
 
 	private void printTableColumnHeaders(Table tableToPrint)	{
@@ -37,14 +36,15 @@ public class DataOutput  {
 
 		for(Record rToPrint : copyOfSet)	{
 			for(int field = 0; field < rToPrint.getNumberOfFields(); field++)	{
-				System.out.printf("%s ",rToPrint.getField(field).getValue(),tableToPrint.getColumn(field).getLongestFieldSize());
+				System.out.printf("%s ",formatField(rToPrint.getField(field).getValue(),tableToPrint.getColumn(field).getLongestFieldSize()));
 			}
 			System.out.printf("\n");	
 		}	
 	}
 
 	private String formatField(String fieldToPrint, int longest)	{
-		StringBuffer recordToPrint = new StringBuffer(fieldToPrint);
+		StringBuffer recordToPrint = new StringBuffer();
+		recordToPrint.append(fieldToPrint);
 		int spacesToAppend = (longest - recordToPrint.length());
 		try	{
 			if(spacesToAppend < 0)	{

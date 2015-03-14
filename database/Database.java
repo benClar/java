@@ -15,6 +15,9 @@ public class Database  {
 	public Database(String name)	{
 		databaseName = name; 
 		tables = new HashMap<String, Table>();
+		if(databaseExists())	{
+			populateDatabase();
+		}
 	}
 
 	public void writeDatabase()	{
@@ -337,8 +340,6 @@ public class Database  {
 	}
 
 	/*To do:
-		create ability to rename files
-		create ability to delete files 
 		remember to validate if database already exists before allowing its creation
 		*/
 }

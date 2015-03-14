@@ -2,32 +2,82 @@ import com.bclarke.testing.*;
 import com.bclarke.general.*;
 import java.util.*;
 
+/* TO DO:
+ * Remove references to key field....
+ */ 
+
 public class Record implements Comparable<Record> {
 
 // public class Record {
 
 private ArrayList<Field> fields;
 private int keyField;
+private boolean hasKey;
 
 private final int BITSHIFT = 3;
 
-public Record(Field[] f, int keyField)	{
+public Record(Field[] f, int kField)	{
+	hasKey = true;
 	fields = new ArrayList<Field>();
 	addNewFields(f);
+	keyField = kField;
+}
+
+public Record(Field[] f)	{
+	hasKey = false;
+	fields = new ArrayList<Field>();
+	addNewFields(f);
+}
+
+public Record copyOf()	{
+
+	Field[] copiedFields = new Field[fields.size()];
+	int i = 0;
+	for( Field d : fields )	{
+		copiedFields[i] = d.copyOf();
+		i++;
+	}
+
+	if(hasKey)	{
+		return new Record(copiedFields,keyField);
+	} else	{
+		return new Record(copiedFields);
+
+	}
 }
 
 @Override
 //! May need to include comparison of floating points.
  public int compareTo(Record r) {
- 	if(ifInteger(this.getPrimaryKeyValue()))	{
- 		return (Integer.parseInt(this.getPrimaryKeyValue()) -  Integer.parseInt(r.getPrimaryKeyValue()));
- 	} else	{
- 		return this.getPrimaryKeyValue().compareToIgnoreCase(r.getPrimaryKeyValue());
+ 	int result = 0;
+ 	boolean unequalComparison = false;  //!Set to true once a field has been found greater than or less than (i.e. not equal)
+ 	int comparisonField = 0;
+
+ 	while(comparisonField < this.getNumberOfFields() && unequalComparison == false)	{
+	 	if(ifInteger(this.getField(comparisonField).getValue()))	{
+	 		if((result = Integer.parseInt(this.getField(comparisonField).getValue()) - Integer.parseInt(r.getField(comparisonField).getValue())) != 0){
+	 			unequalComparison = true;
+	 		}
+	 	} else	{
+	 		if((result = this.getField(comparisonField).getValue().compareToIgnoreCase(r.getField(comparisonField).getValue())) != 0){
+	 			unequalComparison = true;
+	 		}
+	 	}
+	 	comparisonField++;
  	}
+
+ 	if(!unequalComparison)	{
+ 		result = 0;  //!All fields are equal. 
+ 	}
+ 	return result;
  }
 
  public String getPrimaryKeyValue()	{
- 	return getField(keyField).getValue();
+ 	if(hasKey)	{
+ 		return getField(keyField).getValue();
+ 	} else { 
+ 		return null;
+ 	}
  }
 
  private boolean ifInteger(String val)	{
@@ -194,6 +244,7 @@ public void addNewFields(Field[] newFields)	{
 
 	public static Testing unitTest_RecordHashing(Testing t)	{
 		WhiteBoxTesting.startTesting();	
+		t.enterSuite("Record Unit Tests: Hashing Record");
 		Field[] f = new Field[3];
 		f[0] = new Field("a",FieldDataType.STRING);
 		f[1] = new Field("b",FieldDataType.STRING);
@@ -225,6 +276,7 @@ public void addNewFields(Field[] newFields)	{
 		f[1] = new Field("c",FieldDataType.STRING);
 		f[2] = new Field("d",FieldDataType.STRING);
 		Record r6 = new Record(f,1);
+
  		t.compare(-1,"==",r5.compareTo(r6),"r6 primary key is larger than r5 primary key");
  		t.compare(0,"==",r5.compareTo(r5),"r5 primary key is the same as its own primary key");
  		t.compare(1,"==",r2.compareTo(r1),"r2 string key is greater than r1 string key");

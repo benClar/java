@@ -14,18 +14,33 @@ public class DBMS  {
 	
 	Testing t = new Testing();
 
-	if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.UNIT_TEST)) {
-		DBMS.unitTest(new Testing()).endTesting();
-	} else if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.COMPONENT_TEST)) {
-		DBMS.componentTest(new Testing()).endTesting();
-	} else if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.NOP)) {
-		DBMS main = new DBMS();
-		main.run(args);
+		if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.UNIT_TEST)) {
+			DBMS.unitTest(new Testing()).endTesting();
+		} else if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.COMPONENT_TEST)) {
+			DBMS.componentTest(new Testing()).endTesting();
+		} else if(WhiteBoxTesting.checkMode(args).equals(OperatingMode.NOP)) {
+			DBMS main = new DBMS();
+			main.run(args);
+		}
 	}
-}
 
 	public void run(String[] args)  {
-		/*main Program*/
+		Database db = new Database(args[0]);
+		RelationStack rs = new RelationStack();
+		Interpreter i = new Interpreter(db,rs);
+		String[] cNames = new String[3];
+		StringToParse stp = new StringToParse();
+		System.out.println(args[0]); 
+		try{
+			BufferedReader dataIn = new BufferedReader(new InputStreamReader(System.in));
+			String input;
+	 
+			while((input=dataIn.readLine())!=null){
+				i.parse(input);
+			}
+		}catch(IOException io){
+			io.printStackTrace();
+		}	
 	}
 
 /*----------Testing----------*/
@@ -53,7 +68,7 @@ public class DBMS  {
 		DBMS.componentTests_tableRecordField(t);
 		DBMS.componentTest_ReadAndWriteTables(t);
 		DBMS.componentTests_keyTesting(t);
-	
+		Interpreter.unitTest(t);
 		return t;
 	}
 
