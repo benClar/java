@@ -19,14 +19,18 @@ private final int BITSHIFT = 3;
 public Record(Field[] f, int kField)	{
 	hasKey = true;
 	fields = new ArrayList<Field>();
-	addNewFields(f);
+	if(!addNewFields(f))	{
+		nullifyRow(fields);
+	}
 	keyField = kField;
 }
 
 public Record(Field[] f)	{
 	hasKey = false;
 	fields = new ArrayList<Field>();
-	addNewFields(f);
+	if(!addNewFields(f))	{
+			nullifyRow(fields);
+	}
 }
 
 public Record copyOf()	{
@@ -54,7 +58,14 @@ public Record copyOf()	{
  	int comparisonField = 0;
 
  	while(comparisonField < this.getNumberOfFields() && unequalComparison == false)	{
-	 	if(ifInteger(this.getField(comparisonField).getValue()))	{
+	 	if(this.getField(comparisonField).getFieldType() == FieldDataType.INTEGER)	{
+	 		try	{
+		 		if(!ifInteger(this.getField(comparisonField).getValue()))	{
+		 			throw new Exception("Field" + comparisonField + "type is integer but it is an invalid integer");
+		 		}
+	 		} catch (Exception e)	{
+	 			WhiteBoxTesting.catchFatalException(e,"Field type error");
+	 		}
 	 		if((result = Integer.parseInt(this.getField(comparisonField).getValue()) - Integer.parseInt(r.getField(comparisonField).getValue())) != 0){
 	 			unequalComparison = true;
 	 		}
@@ -181,10 +192,20 @@ public int overwriteRow(Field[] newFields)	{
 	return 1;
 }
 
-public void addNewFields(Field[] newFields)	{
-	for(int i = 0; i < newFields.length; i++)	{
-		fields.add(newFields[i]);
+public boolean addNewFields(Field[] newFields)	{
+	try	{
+		for(int i = 0; i < newFields.length; i++)	{
+			if(newFields[i] != null)	{
+				fields.add(newFields[i]);
+			} else	{
+				throw new Exception();
+			}
+		}
+	} catch (Exception e)	{
+		WhiteBoxTesting.catchException(e,"Invalid Field attempted to be added");
+		return false;
 	}
+	return true;
 }
 
 

@@ -1,0 +1,5 @@
+ID[{type:string}{key:primaryKey}],C_ID[{type:string}{fkey:Region}],Appliance[{type:string}]
+1,1,microwave
+2,2,TV
+6,1,radio
+7,1,laptop

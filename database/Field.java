@@ -11,6 +11,10 @@ public class Field  {
 		type = t;
 	}
 
+	public FieldDataType getFieldType()	{
+		return type;
+	}
+
 	public String getValue()	{
 		return value;
 	}

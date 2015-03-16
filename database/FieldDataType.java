@@ -2,5 +2,7 @@ public enum FieldDataType	{
 
 	STRING(),
 	PKEY(),
-	NONKEY();
+	NONKEY(),
+	INTEGER(),
+	FKEY();
 }

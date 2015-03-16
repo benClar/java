@@ -88,6 +88,7 @@ public class TableReader  {
 		FieldDataType key = FieldDataType.NONKEY;
 		colName = parseColName(cols);
 		parseCurrentChar(cols,'[');
+		String reference;
 		while(cols.getCurrentChar() != END_META)	{
 			parseCurrentChar(cols,'{');
 			switch(getTag(cols))	{
@@ -97,6 +98,11 @@ public class TableReader  {
 				case "key":
 						key = parseKey(cols);
 					break;
+				case "fkey":
+						reference = parseReference(cols);
+						parseCurrentChar(cols,'}');
+						parseCurrentChar(cols,']');
+						return new Column(new String(clean(new StringBuffer(colName))),colType,FieldDataType.FKEY,reference);
 				default:
 					break;
 			}
@@ -104,6 +110,11 @@ public class TableReader  {
 		}
 		parseCurrentChar(cols,']');
 		return new Column(new String(clean(new StringBuffer(colName))),colType,key);		
+	}
+
+	private String parseReference(StringToParse cols)	{
+		parseCurrentChar(cols,':');
+		return parseTagValue(cols);
 	}
 
 	private int parseCurrentChar(StringToParse line, char expected)	{
@@ -170,7 +181,7 @@ public class TableReader  {
 
 	private FieldDataType parseKey(StringToParse line)	{
 		try{
-			parseCurrentChar(line,':');	
+			parseCurrentChar(line,':');
 			switch(parseTagValue(line))	{
 				case "primaryKey":
 					return FieldDataType.PKEY;
@@ -189,6 +200,8 @@ public class TableReader  {
 			switch(parseTagValue(line))	{
 				case "string":
 					return FieldDataType.STRING;
+				case "integer":
+					return FieldDataType.INTEGER;
 				default:
 					throw new Exception();
 			}

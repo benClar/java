@@ -23,6 +23,10 @@ public class RelationStack  {
 		}
 	}
 
+	public int getSize()	{
+		return relStack.size();
+	}
+
 	public Table pop()	{
 		try{
 			if(!relStack.empty())	{

@@ -5,7 +5,7 @@ public class StringToParse  {
 
 	String line;
 	int charToParse;
-
+	private final char ESCAPE_CHAR = '\\';
 	public StringToParse(String l)	{
 		line = validateString(l);
 		charToParse = 0;
@@ -51,7 +51,29 @@ public class StringToParse  {
 		return l;
 	}
 
+	public String getDelimitedToken(StringToParse cLine, char delimiter)	{
+		StringBuffer columnName = new StringBuffer("");
+
+		while(cLine.hasNext() && cLine.getCurrentChar() != delimiter)	{
+			if(cLine.getCurrentChar() == ESCAPE_CHAR)	{
+				cLine.next();
+				columnName.append(cLine.getNext());
+			} else	{
+				columnName.append(cLine.getNext());
+			}
+		}
+		try{
+			if(columnName.charAt(columnName.length()-1) == ' ')	{
+				columnName.deleteCharAt(columnName.length()-1);
+			}
+		} catch (StringIndexOutOfBoundsException e)	{	
+
+		}
+		return columnName.toString();
+	}
+
 	public int parseCurrentChar(char expected)	{
+			consumeWhiteSpace();
 			if(getCurrentChar() != expected)	{
 				throw new SyntaxErrorException("expected" + expected);
 			}
@@ -65,6 +87,20 @@ public class StringToParse  {
 		} catch	(IndexOutOfBoundsException e)	{
 			WhiteBoxTesting.catchFatalException(e,"No more characters in line");
 			return '\0';
+		}
+	}
+
+	public char getPreviousChar()	{
+		if(getCurrentPosition() != 0)	{
+			return line.charAt(charToParse - 1);
+		} else	{
+			return '\0';
+		}
+	}
+
+	public void consumeWhiteSpace()	{
+		while(hasNext() && getCurrentChar() == ' ')	{
+			charToParse++;
 		}
 	}
 
@@ -104,7 +140,13 @@ public class StringToParse  {
 
 		return false;
 	}
-
+	public boolean isEmpty()	{
+		if(line.
+			length() == 0)	{
+			return true;
+		} 
+		return false;
+	}
 	public void setCharToParse(int i)	{
 		charToParse = i;
 	}

@@ -40,9 +40,7 @@ public class TableWriter  {
 
 		writeString(formatColumnData(tableToWrite));
 		for(Record recordToWrite : copyOfSet)	{
-			for(int i = 0; i < tableToWrite.getCardinality(); i++)	{
-				writeString(formatRow(recordToWrite));
-			}
+			writeString(formatRow(recordToWrite));
 		}
 		closeFile();
 	}
@@ -96,6 +94,12 @@ public class TableWriter  {
 					return "{key:primaryKey}";
 				case NONKEY:
 					return "";
+				case FKEY:
+					if(col.getReference() != null)	{
+					return ("{fkey:" + col.getReference() + "}");
+					} else	{
+						throw new Exception("Column has null Foreign Key reference");
+					}
 				default:
 					throw new Exception("Unrecognised Key Type stored in column");
 			}
@@ -110,6 +114,8 @@ public class TableWriter  {
 			switch(col.getColumnType())	{
 				case STRING:
 					return "{type:string}";
+				case INTEGER:
+					return "{type:integer}";
 				default:
 					throw new Exception();
 			}

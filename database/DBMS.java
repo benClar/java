@@ -34,9 +34,12 @@ public class DBMS  {
 		try{
 			BufferedReader dataIn = new BufferedReader(new InputStreamReader(System.in));
 			String input;
-	 
+	 		System.out.printf("> ");
 			while((input=dataIn.readLine())!=null){
-				i.parse(input);
+				System.out.printf("> ");
+				if(i.parse(input) == null)	{
+					System.exit(0);
+				}
 			}
 		}catch(IOException io){
 			io.printStackTrace();
@@ -115,8 +118,8 @@ public class DBMS  {
 			recordTooLong[i]=new Field("field" + (i + 6),FieldDataType.STRING);
 		}
 		t.compare(0,"==",tab.addRecord(recordTooLong),"Populated table invalid records");
-		// DataOutput dio = new DataOutput();
-		// dio.printTable(tab);
+		DataOutput dio = new DataOutput();
+		dio.printTable(tab);
 		t.compare(3,"==",tab.getRecordByKey("field1").getNumberOfFields(),"row 0 has 3 fields");
 		fieldCount = 0;
 		Set<Record> copyOfSet = tab.getRecordSet();

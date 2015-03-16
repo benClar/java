@@ -1,0 +1,4 @@
+Manufact_ID[{type:string}],Manufact[{type:string}],ID[{type:string}],Manu_ID[{type:string}],Product[{type:string}]
+1,Sony,1,1,tv
+1,Sony,2,1,radio
+3,Apple,3,3,laptop

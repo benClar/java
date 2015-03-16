@@ -127,17 +127,48 @@ public class Database  {
 
 	}
 
+	public void updateReferences(String oldTableName, String newTableName)	{
+		for(Table t :tables.values())	{
+			if(!t.getTableName().equals(newTableName))	{
+				for(int i = 0; i < t.getWidth(); i++)	{
+					if(t.getColumn(i).getReference() != null && t.getColumn(i).getReference().equals(oldTableName))	{
+						t.getColumn(i).setReference(newTableName);
+					}
+				}
+			}
+		}
+	}
+
+	public boolean validateFieldReference(String f, Column sourceColumn)	{
+		String refTable;
+		try	{
+			if(sourceColumn.getKeyType() == FieldDataType.FKEY)	{
+				if((refTable = sourceColumn.getReference()) != null && getTable(sourceColumn.getReference()).tableContainsKey(f))	{
+					return true;
+				}
+				throw new Exception();
+			} else	{
+				throw new Exception();
+			}
+		} catch (Exception e)	{
+			WhiteBoxTesting.catchException(e,"Foreign key does not match Primary key in reference table");
+			return false;
+		}
+	}
 
 	public int changeTableName(String oldName, String newName)	{
 		try	{
+			
 			if(databaseContainsTable(newName) == false)	{
 				if(getTable(oldName).setTableName(newName) == 1	){
 					 if(changeTableMapping(oldName, newName) == 1)	{
 					 	if(tableFileExists(oldName))	{
 					 		renameTableFile(oldName,newName);
 					 	}
+						updateReferences(oldName,newName);
 					 	return 1;
 					 } 
+
 				} 
 			} else {
 				throw new Exception(" Table" + newName + "Already exists ");
@@ -168,6 +199,14 @@ public class Database  {
 
 	public Table getTable(String tableName)	{
 		return tables.get(tableName);
+	}
+
+	public String getSchema()	{
+		String schemaString = "";
+		for (String key : tables.keySet()) {
+    		schemaString += key + '\n';
+		}
+		return schemaString;
 	}
 
 	private int changeTableMapping(String oldName, String newName)	{
@@ -206,7 +245,7 @@ public class Database  {
 		}
 	}
 
-	private int removeTable(String tName)	{
+	public int removeTable(String tName)	{
 		try { 
 			if(databaseContainsTable(tName))	{
 				if(tableFileExists(tName))	{
@@ -238,6 +277,7 @@ public class Database  {
 		WhiteBoxTesting.startTesting();
 		Database.unitTest_AddTableToDatabase(t);
 		Database.unitTest_databaseIO(t);
+		Database.generateTestDatabase();
 		return t;
 	}
 
@@ -301,9 +341,69 @@ public class Database  {
 		dbWrite.removeTable("Corporations");
 		t.compare(false,"==",dbWrite.tableFileExists("Corporations"),"Corporations table file has been deleted");
 		t.compare(dbWrite.getTable("Corporations"),"==",null,"Corporation table has been removed from mapping");
+
+
+		dbWrite.writeDatabase();
+
 		t.compare(dbWrite.removeTable("FakeTable"),"==",0,"Invalid table attempted to be removed");
 		t.exitSuite();
 		return t;
+	}
+
+	public static void generateTestDatabase()	{
+		String[] cNames = new String[]{"col1","col2","col3"};
+		FieldDataType[] dtype = new FieldDataType[3];
+		FieldDataType[] ktype = new FieldDataType[3];
+		Field[] f = new Field[3];
+
+
+		for(int i = 0; i < dtype.length; i++)	{
+			dtype[i] = FieldDataType.STRING;
+			ktype[i] = FieldDataType.NONKEY;
+		}
+		ktype[0] = FieldDataType.PKEY;
+
+
+
+		Table tab1=new Table(cNames,dtype,ktype,"Appliances");
+		Table tab2=new Table(cNames,dtype,ktype,"Companies");
+		Table tab3=new Table(cNames,dtype,ktype,"Countries");
+		Database dbWrite = new Database("generatedTestDatabase");
+		dbWrite.addTable(tab1);
+		dbWrite.addTable(tab2);
+		dbWrite.addTable(tab3);
+
+
+		f[0] = new Field("1",FieldDataType.STRING);
+		f[1] = new Field("Sony",FieldDataType.STRING);
+		f[2] = new Field("TV",FieldDataType.STRING);
+		dbWrite.getTable("Appliances").addRecord(f);
+
+		f[0] = new Field("2",FieldDataType.STRING);
+		f[1] = new Field("Sony",FieldDataType.STRING);
+		f[2] = new Field("Radio",FieldDataType.STRING);
+		dbWrite.getTable("Appliances").addRecord(f);
+
+		f[0] = new Field("1",FieldDataType.STRING);
+		f[1] = new Field("Sony",FieldDataType.STRING);
+		f[2] = new Field("Japan",FieldDataType.STRING);
+		dbWrite.getTable("Companies").addRecord(f);
+
+		f[0] = new Field("2",FieldDataType.STRING);
+		f[1] = new Field("Panasonic",FieldDataType.STRING);
+		f[2] = new Field("Japan",FieldDataType.STRING);
+		dbWrite.getTable("Companies").addRecord(f);
+
+		f[0] = new Field("1",FieldDataType.STRING);
+		f[1] = new Field("Asia",FieldDataType.STRING);
+		f[2] = new Field("Japan",FieldDataType.STRING);
+		dbWrite.getTable("Countries").addRecord(f);
+
+		f[0] = new Field("2",FieldDataType.STRING);
+		f[1] = new Field("UK",FieldDataType.STRING);
+		f[2] = new Field("England",FieldDataType.STRING);
+		dbWrite.getTable("Countries").addRecord(f);
+		dbWrite.writeDatabase();
 	}
 
 	public static Testing unitTest_AddTableToDatabase(Testing t)	{

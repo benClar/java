@@ -1,0 +1,5 @@
+Manu_ID[{type:string}{key:primaryKey}],Manufact[{type:string}]
+1,Sony
+2,Panasonic
+3,Apple
+4,Google

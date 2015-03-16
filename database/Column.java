@@ -7,12 +7,14 @@ public class Column {
 	private FieldDataType columnType;
 	private int longestFieldSize;
 	private FieldDataType keyStatus;
+	private String references;
 
 	public Column(String cName, FieldDataType t, FieldDataType key)	{
 		columnName = cName;
 		columnType = t;
 		longestFieldSize = cName.length();
 		keyStatus = key;
+		setReference(null);
 	}
 
 	public Column(String cName, FieldDataType t)	{
@@ -20,12 +22,69 @@ public class Column {
 		columnType = t;
 		longestFieldSize = cName.length();
 		keyStatus = FieldDataType.NONKEY;
+		setReference(null);
+	}
+
+	public Column(String cName, FieldDataType t, FieldDataType key, String ref)	{
+		columnName = cName;
+		columnType = t;
+		longestFieldSize = cName.length();
+		keyStatus = key;
+		setReference(validateReference(ref,key));
+	}
+
+	private String validateReference(String reference, FieldDataType key)	{
+		if(key != FieldDataType.FKEY)	{
+			return null;
+		}
+
+		return reference;
+	}
+
+	public void setReference(String newReference)	{
+		references = newReference;
+	}
+
+	public String getReference()	{
+		try	{
+			if(references != null)	{
+				return references;
+			} else	{
+				if(keyStatus == FieldDataType.FKEY)	{
+					throw new Exception();
+				}
+			}
+		} catch (Exception e)	{
+			WhiteBoxTesting.catchFatalException(e,"Column is a foreign key without a reference");
+		}
+		return null;
+	}
+
+	public String toString()	{
+		if(keyStatus ==FieldDataType.FKEY)	{
+			return new String("{Name: " + columnName + "} {Type: " + columnType + "} {Key Type:" + keyStatus.toString() + "->" + references + "}");
+		} else	{
+			return new String("{Name: " + columnName + "} {Type: " + columnType + "} {Key Type:" + keyStatus.toString() + "}");
+		}
+
 	}
 
 	public Column copyOf()	{
 		StringBuffer copyName = new StringBuffer();
 		copyName.append(columnName);
 		return new Column(new String(copyName),columnType,keyStatus);
+	}
+
+	public void setKeyType(FieldDataType newType)	{
+		try	{
+		if(newType != FieldDataType.NONKEY && newType != FieldDataType.PKEY)	{
+			throw new Exception("Tried to set key field to data type");
+		} else	{
+			keyStatus = newType;
+		}
+		} catch (Exception e)	{
+			WhiteBoxTesting.catchFatalException(e,"Internal error");
+		}
 
 	}
 

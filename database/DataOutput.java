@@ -19,14 +19,28 @@ public class DataOutput  {
 	}
 
 	public void printTable(Table tableToPrint)	{
+		System.out.printf("\n");
+		printTableName(tableToPrint);
 		printTableColumnHeaders(tableToPrint);
 		printTableRecords(tableToPrint);
 	}
 
 	private void printTableColumnHeaders(Table tableToPrint)	{
+		System.out.printf("+ ");
 		for(int columnHead = 0; columnHead < tableToPrint.getWidth(); columnHead++)	{
-			System.out.printf("%s ",formatField(tableToPrint.getColumn(columnHead).getColumnName(),tableToPrint.getColumn(columnHead).getLongestFieldSize()));
+			System.out.printf("%s + ",formatField("",tableToPrint.getColumn(columnHead).getLongestFieldSize(),'-'));
 		}
+		System.out.printf("\n");
+		System.out.printf("| ");
+		for(int columnHead = 0; columnHead < tableToPrint.getWidth(); columnHead++)	{
+			System.out.printf("%s | ",formatField(tableToPrint.getColumn(columnHead).getColumnName(),tableToPrint.getColumn(columnHead).getLongestFieldSize(),' '));
+		}
+		System.out.printf("\n");
+		System.out.printf("+ ");
+		for(int columnHead = 0; columnHead < tableToPrint.getWidth(); columnHead++)	{
+			System.out.printf("%s + ",formatField("",tableToPrint.getColumn(columnHead).getLongestFieldSize(),'-'));
+		}
+		
 		System.out.printf("\n");
 	}
 
@@ -35,14 +49,25 @@ public class DataOutput  {
 		Set<Record> copyOfSet = tableToPrint.getRecordSet();
 
 		for(Record rToPrint : copyOfSet)	{
+			System.out.printf("| ");
 			for(int field = 0; field < rToPrint.getNumberOfFields(); field++)	{
-				System.out.printf("%s ",formatField(rToPrint.getField(field).getValue(),tableToPrint.getColumn(field).getLongestFieldSize()));
+				System.out.printf("%s | ",formatField(rToPrint.getField(field).getValue(),tableToPrint.getColumn(field).getLongestFieldSize(),' '
+					));
 			}
 			System.out.printf("\n");	
-		}	
+		}
+		System.out.printf("+ ");
+		for(int columnHead = 0; columnHead < tableToPrint.getWidth(); columnHead++)	{
+			System.out.printf("%s + ",formatField("",tableToPrint.getColumn(columnHead).getLongestFieldSize(),'-'));
+		}
+		System.out.printf("\n");	
 	}
 
-	private String formatField(String fieldToPrint, int longest)	{
+	public void printString(String toPrint)	{
+		System.out.println(toPrint);
+	}
+
+	private String formatField(String fieldToPrint, int longest,char toApp)	{
 		StringBuffer recordToPrint = new StringBuffer();
 		recordToPrint.append(fieldToPrint);
 		int spacesToAppend = (longest - recordToPrint.length());
@@ -55,7 +80,7 @@ public class DataOutput  {
 			return null;
 		}
 		for(int i = 0;i < spacesToAppend; i++)	{
-			recordToPrint.append(" ");
+			recordToPrint.append(toApp);
 		}
 
 		return new String(recordToPrint);
@@ -80,7 +105,7 @@ public class DataOutput  {
 		t.enterSuite("DataOutput Unit Tests");
 		TableReader tr = new TableReader("text","testTable_toRead");
 		DataOutput d = new DataOutput();
-		t.compare("val3      ","==",d.formatField("val3",10),"Correct amount of spaces appended to string");
+		t.compare("val3      ","==",d.formatField("val3",10,' '),"Correct amount of spaces appended to string");
 		t.exitSuite();
 		return t;
 	}

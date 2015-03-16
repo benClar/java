@@ -1,0 +1,5 @@
+ID[{type:string}{key:primaryKey}],Region[{type:string}]
+1,UK
+2,France
+3,Germany
+4,Norway
