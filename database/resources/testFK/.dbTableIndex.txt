@@ -1,2 +1,4 @@
 Product
 Region
+officeRegions
+Offices

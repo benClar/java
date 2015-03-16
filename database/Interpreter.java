@@ -34,6 +34,7 @@ public class Interpreter	{
 	private final String RENAME_COLUMN = "rename";
 	private final String CATALOG = "describe";
 	private final String QUIT="bye";
+	private final String STACK="stack";
 	public Interpreter(Database d, RelationStack rs)	{
 		currentDatabase = d;
 		currentRelStack = rs;
@@ -98,6 +99,9 @@ public class Interpreter	{
 		 			return null;
 		 		case CATALOG:
 		 			parseCatalogTable(currentLine);
+		 			break;
+		 		case STACK:
+		 			interpreterOut.printStringArray(currentRelStack.stackRelationsToString());
 		 			break;
 		 		case "":
 		 			break;
@@ -168,7 +172,7 @@ public class Interpreter	{
 	}
 
 	private Column removeKeyState(Column c)	{
-		if(c.getKeyType() ==FieldDataType.PKEY)	{
+		if(c.getKeyType() ==FieldDataType.PKEY || c.getKeyType() == FieldDataType.FKEY)	{
 			c.setKeyType(FieldDataType.NONKEY);
 		}
 		return c;
@@ -370,7 +374,15 @@ public class Interpreter	{
 				}
 			}
 		}
-		currentRelStack.push(new Table(newCols,tableName));
+		try {
+			if(newCols.length <= 0)	{
+				throw new IllegalArgumentException();
+			}
+			currentRelStack.push(new Table(newCols,tableName));
+		} catch (IllegalArgumentException e)	{
+			WhiteBoxTesting.catchException(e,"Specify Columns to add to table");
+		}
+		
 		
 	}
 
@@ -430,17 +442,28 @@ public class Interpreter	{
 					if(references == null)	{
 						newColumns.add(new Column(columnName,columnType,columnKeyType));
 					} else{
-						newColumns.add(new Column(columnName,columnType,columnKeyType,references));
+						if(validateForeignKeyColumnTypes(references,columnType))	{
+							newColumns.add(new Column(columnName,columnType,columnKeyType,references));
+						} else	{
+							throw new Exception("Foreign key reference is different data type");
+						}
 					}
 				}
 				columnKeyType = null;
 				references = null;
 			}
-		return newColumns.toArray(new Column[newColumns.size()]);
+			return newColumns.toArray(new Column[newColumns.size()]);
 		} catch (Exception e)	{
 			WhiteBoxTesting.catchException(e,"Syntax Error");
 			return null;
 		}
+	}
+
+	private boolean validateForeignKeyColumnTypes(String reference, FieldDataType columnType)	{
+		if(currentDatabase.getTable(reference).getColumn(currentDatabase.getTable(reference).getKey()).getColumnType() == columnType)	{
+			return true;
+		}
+		return false;
 	}
 
 	private String validateReferences(String reference)	{
@@ -664,8 +687,8 @@ public class Interpreter	{
 		RelationStack rs = new RelationStack();
 		Interpreter i = new Interpreter(db,rs);
 		DataOutput dOut = new DataOutput();
-		i.parse("table table1");	
-		i.parse("table table1");
+		// i.parse("table table1");	
+		// i.parse("table table1");
 		i.parse("new \"Countries\" $ID $key $string $Manu_ID $refers $table1 $string $Country $string");
 		t.compare("table1","==",rs.peek().getColumn(rs.peek().getColumnIndex("Manu_ID")).getReference(),"New table refers to table1");
 		t.compare(0,"==",i.parse("insert $1 $10 $UK"),"Tried to add foreign key record that doesn't exist");
@@ -673,6 +696,12 @@ public class Interpreter	{
 		t.compare(1,"==",i.parse("insert $6 $2 $Japan"),"Tried to add foreign key record that exists");
 		t.compare(1,"==",i.parse("insert $7 $3 $USA"),"Tried to add foreign key record that exists");
 		t.compare(1,"==",i.parse("insert $8 $4 $France"),"Tried to add foreign key record that exists");
+		i.parse("new \"Employees\" $Client_ID $key $integer $Forename $string $Surname $string");
+		i.parse("save");
+		t.compare(0,"==",i.parse("new \"Projects\" $Project_ID $key $integer $Owner $refers $Employees $string"),"Different data type on foreign keys and primary key");
+		t.compare(1,"==",i.parse("new \"Projects\" $Project_ID $key $integer $Owner $refers $Employees $integer"),"Valid Foreign key reference");
+		dOut.printTable(rs.peek());
+		t.compare("Employees","==",rs.peek().getColumn(1).getReference(),"Refences Employee table");
         t.exitSuite();
         return t;
 	}

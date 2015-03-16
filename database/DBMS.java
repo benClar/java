@@ -66,12 +66,13 @@ public class DBMS  {
 		TableWriter.unitTest(t);
 		DataOutput.unitTest(t);
 		Database.unitTest(t);
-		RelationStack.unitTest(t);
 		StringToParse.unitTest(t);
 		DBMS.componentTests_tableRecordField(t);
 		DBMS.componentTest_ReadAndWriteTables(t);
 		DBMS.componentTests_keyTesting(t);
 		Interpreter.unitTest(t);
+		RelationStack.unitTest(t);
+
 		return t;
 	}
 

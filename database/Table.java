@@ -115,6 +115,10 @@ public class Table  {
 		}
 	}
 
+	public Column getColumn(String columnName)	{
+		return getColumn(getColumnIndex(columnName));
+	}
+
 	public Integer getKey()	{
 		if(hasKey)	{
 		return keyField;
@@ -148,12 +152,26 @@ public class Table  {
 			if(t == FieldDataType.PKEY)	{
 				throw new IllegalArgumentException();
 			}
+			for( int i = 0; i < cNames.length; i++)	{
+				if(!validateNewColumnName(cNames[i]))	{
+					throw new IllegalArgumentException("Column Name already exists in table");
+				}	
+			}
 		}
 		addNewColumnNames(cNames,types);
 		extendRows(cNames.length,types);
 		} catch (IllegalArgumentException e)	{
 			WhiteBoxTesting.catchException(e,"Cannot Add Key as empty column");
 		}
+	}
+
+	private boolean validateNewColumnName(String name)	{
+		for(Column c: columnNames)	{
+			if (c.getColumnName().equals(name))	{
+				return false;
+			}
+		}	
+		return true;
 	}
 
 	public int getNumberOfFields()	{
@@ -253,29 +271,6 @@ public class Table  {
 		}
 		return 
 		addRecord(r);
-		// try	{
-		// 	if(hasKey && tableContainsKey(newFields[getKey()]) == true)	{
-		// 		throw new IllegalArgumentException("Key Field not unique");
-		// 	}
-
-		// 	if(newFields.length != getWidth())	{
-		// 		throw new IllegalArgumentException("Number of values supplied doesn't match columns in table");
-		// 	} else	{
-		// 		for(int i = 0; i < newFields.length; i++)	{
-		// 			updateFieldLength(newFields[i],i);
-		// 		}
-		// 	if(hasKey)	{
-		// 		addKey(newFields[getKey()].getValue(),new Record(newFields,getKey())); //! Add reference to record key index
-		// 	}
-		// 	rows.add(getRecordByKey(newFields[getKey()].getValue())); //! Add reference to set via lookup in key index
-				
-		// 		return 1;
-		// 	}
-		// } catch(IllegalArgumentException e)	{
-		// 	return WhiteBoxTesting.catchException(e,"Failed to add record" );
-		// } catch(Exception e)	{
-		// 	return WhiteBoxTesting.catchFatalException(e,"Failed to add record to table ");
-		// }
 	}
 
 	/*
@@ -379,11 +374,9 @@ public class Table  {
 	}
 
 	private int updateFieldLength(String newField, int col)	{
-		// System.out.println("new length" + newField.getValue().length() + "curr length" + columnNames.get(col).getLongestFieldSize());
 		if(newField.length() > columnNames.get(col).getLongestFieldSize())	{
 			columnNames.get(col).setLongestFieldSize(newField.
 				length());
-			// System.out.println("LONGER : UPDATED : " + columnNames.get(col).getLongestFieldSize());
 			return columnNames.get(col).getLongestFieldSize();
 		}
 		return 0;
@@ -398,7 +391,6 @@ public class Table  {
 		}
 	}
 
-	//! Could use refactoring.
 	public Table pullColumns(String[] columnsToPull)	{
 		Column[] newCols = new Column[columnsToPull.length];
 		ArrayList<Record> newRecords = new ArrayList<Record>();
@@ -406,7 +398,6 @@ public class Table  {
 		int newKey = 0;
 		boolean newHasKey = false;
 		String newTableName = new String("");
-		// try {
 			//!Constructing Column Structures
 			for(int c = 0; c < columnsToPull.length; c++)	{
 				if(getColumnIndex(columnsToPull[c]) == getKey())	{
@@ -824,6 +815,7 @@ public class Table  {
 			dtype[i] = FieldDataType.STRING;
 			ktype[i] = FieldDataType.NONKEY;
 		}
+
 		ktype[0] = FieldDataType.PKEY;
 		dtype[0] = FieldDataType.INTEGER;
 

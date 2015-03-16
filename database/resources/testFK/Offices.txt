@@ -1,0 +1,4 @@
+office_ID[{type:integer}{key:primaryKey}],region_id[{type:string}{fkey:Region}],size[{type:string}]
+1,2,medium
+2,3,large
+3,2,small

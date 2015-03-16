@@ -23,6 +23,23 @@ public class RelationStack  {
 		}
 	}
 
+	public String[] stackRelationsToString()	{
+		ArrayList<String> stackToGet = new ArrayList<String>();
+		Iterator<Table> tableIt = relStack.iterator();
+		while(tableIt.hasNext())	{
+			stackToGet.add(tableIt.next().getTableName());
+			stackToGet.add("    ||");
+			stackToGet.add("    \\/");
+		}
+		if(stackToGet.size() > 0)	{
+			stackToGet.remove(stackToGet.size()-1);
+			stackToGet.remove(stackToGet.size()-1);
+		} else	{
+			stackToGet.add("Stack Empty");
+		}
+		return stackToGet.toArray(new String[stackToGet.size()]);
+	}
+
 	public int getSize()	{
 		return relStack.size();
 	}
@@ -85,7 +102,8 @@ public class RelationStack  {
 		t.compare(tab,"==",rs.push(tab),"Pushing Table to relation stack");
 		t.compare("testTable","==",rs.peek().getTableName(),"Table peeked at top of stack is called testTable");
 		t.compare("testTable","==",rs.pop().getTableName(),"Table popped from top of stack is called testTable");
-		t.compare(null,"==",rs.pop(),"Stack is empty: invalid pop");		
+		t.compare(null,"==",rs.pop(),"Stack is empty: invalid pop");
+
 		t.exitSuite();
 		return t;
 	}

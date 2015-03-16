@@ -1,0 +1,4 @@
+region_id[{type:string}],office_ID[{type:integer}],size[{type:string}],Region[{type:string}],CEO[{type:string}]
+2,1,medium,France,
+2,3,small,France,
+3,2,large,Germany,

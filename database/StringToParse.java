@@ -85,7 +85,7 @@ public class StringToParse  {
 		try	{
 			return line.charAt(charToParse);
 		} catch	(IndexOutOfBoundsException e)	{
-			WhiteBoxTesting.catchFatalException(e,"No more characters in line");
+			WhiteBoxTesting.catchException(e,"No more characters in line");
 			return '\0';
 		}
 	}

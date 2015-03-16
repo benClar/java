@@ -64,8 +64,16 @@ public class DataOutput  {
 	}
 
 	public void printString(String toPrint)	{
+		System.out.println();
 		System.out.println(toPrint);
 	}
+
+	public void printStringArray(String[] sArr)	{
+		System.out.println();
+		for(String stringElement : sArr)	{
+			System.out.println(stringElement);
+		}
+	}	
 
 	private String formatField(String fieldToPrint, int longest,char toApp)	{
 		StringBuffer recordToPrint = new StringBuffer();
